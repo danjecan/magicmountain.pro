@@ -36,7 +36,7 @@
   var parallaxEls = document.querySelectorAll("[data-parallax]");
   if (parallaxEls.length && !reduceMotion) {
     var onScroll = function () {
-      if (window.matchMedia("(max-width: 700px)").matches) return;
+      if (window.matchMedia("(max-width: 1099px)").matches) return;
       var hero = document.querySelector(".hero");
       if (!hero) return;
       var rect = hero.getBoundingClientRect();
@@ -72,32 +72,42 @@
     setInterval(tick, 60000);
   });
 
-  // ---- Hike list filters (audience / difficulty / month) ----
+  // ---- Hike list filters (audience + two selects: difficulty/month on upcoming, country/year on past) ----
   var filterBar = document.getElementById("hikeFilters");
   var hikeGrid = document.getElementById("hikeGrid");
   if (filterBar && hikeGrid) {
     var audienceBtns = filterBar.querySelectorAll("[data-audience]");
-    var diffSelect = document.getElementById("filterDifficulty");
-    var monthSelect = document.getElementById("filterMonth");
+    var selectA = document.getElementById("filterDifficulty") || document.getElementById("filterCountry");
+    var attrA = document.getElementById("filterDifficulty") ? "data-difficulty" : "data-country";
+    var selectB = document.getElementById("filterMonth") || document.getElementById("filterYear");
+    var attrB = document.getElementById("filterMonth") ? "data-month" : "data-year";
     var countEl = document.getElementById("hikeCount");
     var lang = document.documentElement.lang;
+    var isPast = hikeGrid.hasAttribute("data-past-list");
     var activeAudience = "all";
+    var revealed = false;
+    var showMoreBtn = document.getElementById("showMoreHikes");
+    var pageSize = parseInt(hikeGrid.getAttribute("data-page-size"), 10) || Infinity;
 
     var applyFilters = function () {
-      var diff = diffSelect ? diffSelect.value : "";
-      var month = monthSelect ? monthSelect.value : "";
+      var a = selectA ? selectA.value : "";
+      var b = selectB ? selectB.value : "";
       var visible = 0;
-      hikeGrid.querySelectorAll("[data-audience]").forEach(function (card) {
+      var cards = hikeGrid.querySelectorAll("[data-audience]");
+      var filtering = activeAudience !== "all" || a || b;
+      cards.forEach(function (card) {
         var matches = (activeAudience === "all" || card.getAttribute("data-audience") === activeAudience) &&
-          (!diff || card.getAttribute("data-difficulty") === diff) &&
-          (!month || card.getAttribute("data-month") === month);
-        card.hidden = !matches;
+          (!a || card.getAttribute(attrA) === a) &&
+          (!b || card.getAttribute(attrB) === b);
+        var withinPage = filtering || revealed || visible < pageSize;
+        card.hidden = !matches || !withinPage;
         if (matches) visible++;
       });
+      if (showMoreBtn) showMoreBtn.hidden = filtering || revealed || cards.length <= pageSize;
       if (countEl) {
-        countEl.textContent = lang === "hu"
-          ? visible + " túra időponttal"
-          : visible + " hike" + (visible === 1 ? "" : "s") + " with dates";
+        countEl.textContent = isPast
+          ? (lang === "hu" ? "Eddig " + visible + " túra" : visible + " hike" + (visible === 1 ? "" : "s") + " so far")
+          : (lang === "hu" ? visible + " túra időponttal" : visible + " hike" + (visible === 1 ? "" : "s") + " with dates");
       }
     };
 
@@ -115,8 +125,14 @@
         applyFilters();
       });
     });
-    if (diffSelect) diffSelect.addEventListener("change", applyFilters);
-    if (monthSelect) monthSelect.addEventListener("change", applyFilters);
+    if (selectA) selectA.addEventListener("change", applyFilters);
+    if (selectB) selectB.addEventListener("change", applyFilters);
+    if (showMoreBtn) {
+      showMoreBtn.addEventListener("click", function () {
+        revealed = true;
+        applyFilters();
+      });
+    }
     applyFilters();
   }
 
@@ -204,7 +220,7 @@
   var bookBar = document.getElementById("bookBar");
   if (bookBar) {
     var toggleBookBar = function () {
-      bookBar.classList.toggle("active", window.matchMedia("(max-width: 700px)").matches);
+      bookBar.classList.toggle("active", window.matchMedia("(max-width: 1099px)").matches);
     };
     toggleBookBar();
     window.addEventListener("resize", toggleBookBar);

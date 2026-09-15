@@ -9,13 +9,14 @@ from util import esc
 NAVY, ORANGE = "#001F61", "#FE6B00"
 
 
-def btn(label, variant="primary", size="", href="#", extra="", type_=None, name=None):
+def btn(label, variant="primary", size="", href="#", extra="", type_=None, name=None, id_=None):
     cls = f"btn btn-{variant}" + (f" btn-{size}" if size else "")
     st = f' style="{extra}"' if extra else ""
+    idattr = f' id="{id_}"' if id_ else ""
     if type_:
         nm = f' name="{name}"' if name else ""
-        return f'<button type="{type_}"{nm} class="{cls}"{st}>{label}</button>'
-    return f'<a href="{href}" class="{cls}"{st}>{label}</a>'
+        return f'<button type="{type_}"{nm} class="{cls}"{st}{idattr}>{label}</button>'
+    return f'<a href="{href}" class="{cls}"{st}{idattr}>{label}</a>'
 
 
 def tag(text, kind=""):
@@ -171,15 +172,21 @@ def filter_select(id_, label, options):
     return (f'<span class="select"><select id="{id_}" aria-label="{esc(label)}">{opts}</select>{icon("chev")}</span>')
 
 
-def filter_bar(lang, difficulty_options, month_options, count_id="hikeCount"):
+def filter_bar(lang, option_a, option_b, past=False, count_id="hikeCount"):
+    """option_a/option_b: (value, label) lists. Upcoming hikes filter by difficulty
+    and month; the past-hikes list filters by country and year instead."""
     all_label = t("l_all", lang)
+    if past:
+        id_a, label_a, id_b, label_b = "filterCountry", t("fl_country", lang), "filterYear", t("fl_year", lang)
+    else:
+        id_a, label_a, id_b, label_b = "filterDifficulty", t("fl_diff", lang), "filterMonth", t("fl_month", lang)
     return f'''<div class="filters" id="hikeFilters">
   <button type="button" class="btn btn-primary btn-sm" data-audience="all" aria-pressed="true">{all_label}</button>
   <button type="button" class="btn btn-secondary btn-sm" data-audience="Adults" aria-pressed="false">{t("adults", lang)}</button>
   <button type="button" class="btn btn-secondary btn-sm" data-audience="Families" aria-pressed="false">{t("families", lang)}</button>
   <span class="filters-sep"></span>
-  {filter_select("filterDifficulty", t("fl_diff", lang), [("", t("fl_diff", lang) + ": " + t("fl_any", lang))] + difficulty_options)}
-  {filter_select("filterMonth", t("fl_month", lang), [("", t("fl_month", lang) + ": " + t("fl_any", lang))] + month_options)}
+  {filter_select(id_a, label_a, [("", label_a + ": " + t("fl_any", lang))] + option_a)}
+  {filter_select(id_b, label_b, [("", label_b + ": " + t("fl_any", lang))] + option_b)}
   <span class="muted small" style="margin-left:8px;" id="{count_id}"></span>
 </div>'''
 

@@ -192,6 +192,6 @@ def hero(img, eyebrow, title_html, lead, ctas="", tags="", home=False, alt=""):
     ct = f'<div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">{ctas}</div>' if ctas else ""
     return f'''<div class="band band-dark on-dark hero{" hero-home" if home else ""}" style="margin:0;border-radius:0;">
   <div class="hero-bg" data-parallax="0.5"><img src="{img}" alt="{esc(alt)}"></div><div class="hero-shade"></div>{HERO_LAYERS_SVG}
-  <div class="hero-content" data-parallax="0.15">{tg}<span class="eyebrow" style="color:var(--peach);">{eyebrow}</span><h1 class="h1">{title_html}</h1><p class="lead" style="max-width:600px;">{lead}</p>{ct}</div>
+  <div class="hero-content">{tg}<span class="eyebrow" style="color:var(--peach);">{eyebrow}</span><h1 class="h1">{title_html}</h1><p class="lead" style="max-width:600px;">{lead}</p>{ct}</div>
 </div>
 '''

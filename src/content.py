@@ -90,7 +90,6 @@ T = {
     "l_title": ("Where we're going next", "Merre megyünk legközelebb"),
     "l_lead": ("Every hike we currently have dates for. Family hikes and adult hikes are marked; if something is full, the waiting list is real and we do call people from it.", "Minden túra, aminek már van időpontja. A családi és a felnőtt túrákat jelöljük; ha valami betelt, a várólista valódi, és tényleg hívunk róla embereket."),
     "l_all": ("All", "Mind"),
-    "past_lead": ("A record of the hikes we've run, kept honest for people deciding whether the next one is for them.", "Feljegyzés a megtartott túráinkról, őszintén, azoknak, akik eldöntenék, nekik való-e a következő."),
     "l_nl_eyebrow": ("Nothing that fits?", "Nincs, ami passzol?"),
     "l_nl_title": ("Hear about new dates first", "Tudd meg elsőként az új időpontokat"),
     "l_nl_lead": ("New hikes go out by email before Facebook. Leave your address and we'll write when the next ones are set.", "Az új túrák e-mailben mennek ki, mielőtt Facebookra kerülnének. Hagyd itt a címed, és írunk, amikor megvannak a következők."),
@@ -302,6 +301,29 @@ T = {
     "difficulty_easy": ("Easy", "Könnyű"),
     "difficulty_moderate": ("Moderate", "Közepes"),
     "difficulty_demanding": ("Demanding", "Nehéz"),
+
+    # past hikes list (dedicated page)
+    "pl_eyebrow": ("Past hikes", "Korábbi túrák"),
+    "pl_title": ("Where we've been", "Ahol már jártunk"),
+    "pl_lead": ("Every hike we have led, with an honest account of how it went and photos from the trip. A good way to see what a Magic Mountain hike is really like before you sign up.", "Minden túra, amit eddig vezettünk, őszinte beszámolóval és fotókkal. Jó módja annak, hogy jelentkezés előtt lásd, milyen valójában egy Magic Mountain túra."),
+    "pl_count": ("{n} hikes so far", "Eddig {n} túra"),
+    "fl_country": ("Country", "Ország"),
+    "fl_year": ("Year", "Év"),
+    "pl_more": ("Show more hikes", "További túrák"),
+    "pl_nl_eyebrow": ("Like what you see?", "Tetszik, amit látsz?"),
+    "pl_nl_title": ("Come on the next one", "Gyere velünk legközelebb"),
+    "pl_nl_lead": ("New hikes go out by email before they go on Facebook. Leave your address and we'll let you know when the next dates are set.", "Az új túrák e-mailben mennek ki, mielőtt Facebookra kerülnének. Hagyd itt a címed, és szólunk, amikor megvannak a következő időpontok."),
+
+    "country_hungary": ("Hungary", "Magyarország"),
+    "country_slovakia": ("Slovakia", "Szlovákia"),
+    "country_romania": ("Romania", "Románia"),
+    "country_georgia": ("Georgia", "Grúzia"),
+    "country_other": ("Other", "Egyéb"),
+}
+
+COUNTRY_KEYS = {
+    "Hungary": "country_hungary", "Slovakia": "country_slovakia",
+    "Romania": "country_romania", "Georgia": "country_georgia", "Other": "country_other",
 }
 
 DIFFICULTY_KEYS = {"Easy": "difficulty_easy", "Moderate": "difficulty_moderate", "Demanding": "difficulty_demanding"}

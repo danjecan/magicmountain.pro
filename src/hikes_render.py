@@ -78,11 +78,12 @@ def hike_card(h, lang, small=False):
         foot = f'<div class="card-foot"><span class="h4">{price_label}</span>{btn(cta_label, "primary", "sm", hike_url(h, lang))}</div>'
     d = f'<p class="muted card-desc">{esc(desc)}</p>' if desc and not h.is_past else ""
     month_val = (h.date_start or "")[:7]
+    year_val = (h.date_start or "")[:4]
     # The title link is stretched to cover the whole card (via CSS), rather than
     # wrapping the card in <a> — the price-box CTA is also a link, and a browser
     # will not tolerate one <a> nested inside another (it silently reflows the DOM).
     return f'''<div class="card card-hike" style="display:flex;flex-direction:column;height:100%;"
-   data-audience="{h.audience}" data-difficulty="{h.difficulty}" data-month="{month_val}">
+   data-audience="{h.audience}" data-difficulty="{h.difficulty}" data-month="{month_val}" data-country="{h.country}" data-year="{year_val}">
   <div class="card-media {media_cls}"><img src="{_image(h)}" alt="" loading="lazy"><div class="card-badges">{badges}</div></div>
   <div class="card-body"><div class="card-meta">{metas}</div><h3 class="h3 card-title"><a href="{hike_url(h, lang)}" class="stretched-link">{esc(title)}</a></h3>{d}{meter}{foot}</div>
 </div>'''

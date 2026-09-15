@@ -3,7 +3,7 @@ from components import (band, btn, feature, field_select, field_text,
                          field_textarea, filter_bar, newsletter, section_head, step,
                          stepper, checkbox_field)
 from config import CONFIG
-from content import DIFFICULTY_KEYS, t, tl
+from content import COUNTRY_KEYS, DIFFICULTY_KEYS, t, tl
 from hikes_render import hike_card
 from layout import head, TAIL, nav, footer, hero, url_for
 from util import MONTHS_EN, MONTHS_HU
@@ -39,7 +39,7 @@ def home(lang, upcoming_hikes, past_hikes):
 </div>
 <div style="padding-top:96px;" id="how-we-hike">{band("dark", f"""<div style="display:flex;flex-direction:column;gap:48px;">
   {section_head(t("how_eyebrow", lang), t("how_title", lang))}
-  <div class="grid-3" style="gap:32px;">{feature("mtn", t("how1t", lang), t("how1", lang))}{feature("ppl", t("how2t", lang), t("how2", lang))}{feature("pin", t("how3t", lang), t("how3", lang))}</div>
+  <div class="grid-3 grid-features" style="gap:32px;">{feature("mtn", t("how1t", lang), t("how1", lang))}{feature("ppl", t("how2t", lang), t("how2", lang))}{feature("pin", t("how3t", lang), t("how3", lang))}</div>
   <hr class="rule">
   <div style="display:flex;align-items:center;gap:16px;"><img src="/assets/img/logo.png" alt="" style="width:44px;height:44px;flex:none;"><p class="muted" style="font-size:16px;">{t("cert", lang)}</p></div>
 </div>""")}</div>
@@ -83,16 +83,31 @@ def hike_list_upcoming(lang, hikes):
     return page_shell(lang, "/hikes/", t("meta_hikes_title", lang), t("l_lead", lang), "/hikes/", body)
 
 
+PAST_PAGE_SIZE = 6
+
+
 def hike_list_past(lang, hikes):
     cards = "".join(hike_card(h, lang, small=True) for h in hikes)
-    grid = f'<div class="grid-3">{cards}</div>' if hikes else f'<p class="muted lead">{t("past_empty", lang)}</p>'
+    grid = (f'<div class="grid-3" id="hikeGrid" data-past-list data-page-size="{PAST_PAGE_SIZE}">{cards}</div>'
+            if hikes else f'<p class="muted lead">{t("up_empty", lang)}</p>')
+
+    countries = sorted({h.country for h in hikes if h.country})
+    country_opts = [(c, t(COUNTRY_KEYS.get(c, "fl_any"), lang)) for c in countries]
+    years = sorted({(h.date_start or "")[:4] for h in hikes if h.date_start}, reverse=True)
+    year_opts = [(y, y) for y in years]
+
+    filters_html = filter_bar(lang, country_opts, year_opts, past=True) if hikes else ""
+    more_btn = (f'<div style="display:flex;justify-content:center;">{btn(t("pl_more", lang), "secondary", type_="button", id_="showMoreHikes")}</div>'
+                if len(hikes) > PAST_PAGE_SIZE else "")
     body = f'''<div class="section-first" style="display:flex;flex-direction:column;gap:32px;">
-  <div style="display:flex;flex-direction:column;gap:12px;max-width:760px;"><span class="eyebrow">{t("past_eyebrow", lang)}</span><h1 class="h1">{t("past_title", lang)}</h1><p class="lead muted">{t("past_lead", lang)}</p></div>
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:760px;"><span class="eyebrow">{t("pl_eyebrow", lang)}</span><h1 class="h1">{t("pl_title", lang)}</h1><p class="lead muted">{t("pl_lead", lang)}</p></div>
+  {filters_html}
   {grid}
+  {more_btn}
 </div>
-<div style="padding-top:96px;">{newsletter(t("p_nl_eyebrow", lang), t("p_nl_title", lang), t("p_nl_lead", lang), lang)}</div>
+<div style="padding-top:96px;">{newsletter(t("pl_nl_eyebrow", lang), t("pl_nl_title", lang), t("pl_nl_lead", lang), lang)}</div>
 '''
-    return page_shell(lang, "/hikes/past/", t("meta_past_title", lang), t("past_lead", lang), "/hikes/past/", body)
+    return page_shell(lang, "/hikes/past/", t("meta_past_title", lang), t("pl_lead", lang), "/hikes/past/", body)
 
 
 # ───────────────────────── ABOUT ─────────────────────────
@@ -108,11 +123,11 @@ def about(lang):
   {person("Dan", t("a_dan_role", lang), [t("a_dan1", lang), t("a_dan2", lang), t("a_dan3", lang)], t("photo_dan", lang))}
   {person("Anett", t("a_anett_role", lang), [t("a_anett1", lang), t("a_anett2", lang)], t("photo_anett", lang))}
 </div>
-<div style="padding-top:96px;">{band("light", f"""<div class="grid-2" style="gap:48px;align-items:start;">
+<div style="padding-top:96px;">{band("light", f"""<div class="grid-2 why-grid" style="gap:48px;align-items:start;">
   <div style="display:flex;flex-direction:column;gap:8px;"><span class="eyebrow">{t("a_why", lang)}</span><h2 class="h2">{t("a_why_t", lang)}</h2></div>
   <div style="display:flex;flex-direction:column;gap:16px;"><p>{t("a_why1", lang)}</p><p>{t("a_why2", lang)}</p></div>
 </div>""")}</div>
-<div class="section grid-3" style="gap:32px;">
+<div class="section grid-3 grid-features" style="gap:32px;">
   {feature("flag", t("a_c1t", lang), t("a_c1", lang))}{feature("ppl", t("a_c2t", lang), t("a_c2", lang))}{feature("mtn", t("a_c3t", lang), t("a_c3", lang))}
 </div>
 '''
