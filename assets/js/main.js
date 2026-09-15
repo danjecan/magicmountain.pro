@@ -4,13 +4,199 @@
 (function () {
   "use strict";
 
-  // ---- Mobile nav ----
+  // ---- Mobile nav: full-screen sheet ----
   var navBtn = document.getElementById("navMenuBtn");
-  var navMobile = document.getElementById("navMobile");
-  if (navBtn && navMobile) {
-    navBtn.addEventListener("click", function () {
-      var open = navMobile.classList.toggle("open");
-      navBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  var sheet = document.getElementById("navSheet");
+  var sheetClose = document.getElementById("navSheetClose");
+  if (navBtn && sheet) {
+    var openSheet = function () {
+      sheet.hidden = false;
+      document.body.classList.add("sheet-open");
+      navBtn.setAttribute("aria-expanded", "true");
+      if (sheetClose) sheetClose.focus();
+    };
+    var closeSheet = function () {
+      sheet.hidden = true;
+      document.body.classList.remove("sheet-open");
+      navBtn.setAttribute("aria-expanded", "false");
+      navBtn.focus();
+    };
+    navBtn.addEventListener("click", openSheet);
+    if (sheetClose) sheetClose.addEventListener("click", closeSheet);
+    sheet.addEventListener("click", function (evt) {
+      if (evt.target.tagName === "A") closeSheet();
+    });
+    document.addEventListener("keydown", function (evt) {
+      if (evt.key === "Escape" && !sheet.hidden) closeSheet();
+    });
+  }
+
+  // ---- Parallax hero (desktop only, off for reduced motion) ----
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var parallaxEls = document.querySelectorAll("[data-parallax]");
+  if (parallaxEls.length && !reduceMotion) {
+    var onScroll = function () {
+      if (window.matchMedia("(max-width: 700px)").matches) return;
+      var hero = document.querySelector(".hero");
+      if (!hero) return;
+      var rect = hero.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+      parallaxEls.forEach(function (el) {
+        var factor = parseFloat(el.getAttribute("data-parallax")) || 0;
+        el.style.transform = "translateY(" + (rect.top * -factor) + "px)";
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+
+  // ---- Sign-up deadline countdown ----
+  document.querySelectorAll("[data-deadline]").forEach(function (box) {
+    var target = new Date(box.getAttribute("data-deadline"));
+    if (isNaN(target.getTime())) return;
+    var daysEl = box.querySelector("[data-deadline-days]");
+    var hoursEl = box.querySelector("[data-deadline-hours]");
+    var tick = function () {
+      var diff = target.getTime() - Date.now();
+      if (diff <= 0) {
+        box.hidden = true;
+        return;
+      }
+      box.hidden = false;
+      var days = Math.floor(diff / 86400000);
+      var hours = Math.floor((diff % 86400000) / 3600000);
+      daysEl.textContent = String(days);
+      hoursEl.textContent = String(hours);
+    };
+    tick();
+    setInterval(tick, 60000);
+  });
+
+  // ---- Hike list filters (audience / difficulty / month) ----
+  var filterBar = document.getElementById("hikeFilters");
+  var hikeGrid = document.getElementById("hikeGrid");
+  if (filterBar && hikeGrid) {
+    var audienceBtns = filterBar.querySelectorAll("[data-audience]");
+    var diffSelect = document.getElementById("filterDifficulty");
+    var monthSelect = document.getElementById("filterMonth");
+    var countEl = document.getElementById("hikeCount");
+    var lang = document.documentElement.lang;
+    var activeAudience = "all";
+
+    var applyFilters = function () {
+      var diff = diffSelect ? diffSelect.value : "";
+      var month = monthSelect ? monthSelect.value : "";
+      var visible = 0;
+      hikeGrid.querySelectorAll("[data-audience]").forEach(function (card) {
+        var matches = (activeAudience === "all" || card.getAttribute("data-audience") === activeAudience) &&
+          (!diff || card.getAttribute("data-difficulty") === diff) &&
+          (!month || card.getAttribute("data-month") === month);
+        card.hidden = !matches;
+        if (matches) visible++;
+      });
+      if (countEl) {
+        countEl.textContent = lang === "hu"
+          ? visible + " túra időponttal"
+          : visible + " hike" + (visible === 1 ? "" : "s") + " with dates";
+      }
+    };
+
+    audienceBtns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        audienceBtns.forEach(function (o) {
+          o.classList.remove("btn-primary");
+          o.classList.add("btn-secondary");
+          o.setAttribute("aria-pressed", "false");
+        });
+        b.classList.remove("btn-secondary");
+        b.classList.add("btn-primary");
+        b.setAttribute("aria-pressed", "true");
+        activeAudience = b.getAttribute("data-audience");
+        applyFilters();
+      });
+    });
+    if (diffSelect) diffSelect.addEventListener("change", applyFilters);
+    if (monthSelect) monthSelect.addEventListener("change", applyFilters);
+    applyFilters();
+  }
+
+  // ---- Photo gallery -> lightbox ----
+  var lightbox = document.getElementById("lightbox");
+  if (lightbox) {
+    var lbImage = document.getElementById("lbImage");
+    var lbCounter = document.getElementById("lbCounter");
+    var lbThumbs = document.getElementById("lbThumbs");
+    var lbPrev = document.getElementById("lbPrev");
+    var lbNext = document.getElementById("lbNext");
+    var lbClose = document.getElementById("lbClose");
+    var photos = [];
+    var index = 0;
+
+    var render = function () {
+      lbImage.src = photos[index];
+      lbCounter.textContent = (index + 1) + " / " + photos.length;
+      lbThumbs.querySelectorAll("img").forEach(function (img, i) {
+        img.classList.toggle("on", i === index);
+      });
+      lbPrev.hidden = lbNext.hidden = photos.length < 2;
+    };
+
+    var open = function (photoList, startIndex) {
+      photos = photoList;
+      index = startIndex || 0;
+      lbThumbs.innerHTML = "";
+      photos.forEach(function (src, i) {
+        var img = document.createElement("img");
+        img.src = src;
+        img.alt = "";
+        img.addEventListener("click", function () { index = i; render(); });
+        lbThumbs.appendChild(img);
+      });
+      render();
+      lightbox.hidden = false;
+      document.body.classList.add("sheet-open");
+      lbClose.focus();
+    };
+
+    var close = function () {
+      lightbox.hidden = true;
+      document.body.classList.remove("sheet-open");
+    };
+
+    document.querySelectorAll("[data-photos]").forEach(function (gallery) {
+      var photoList = JSON.parse(gallery.getAttribute("data-photos"));
+      gallery.querySelectorAll("[data-gallery-index]").forEach(function (item) {
+        item.addEventListener("click", function () {
+          open(photoList, parseInt(item.getAttribute("data-gallery-index"), 10) || 0);
+        });
+      });
+    });
+    document.querySelectorAll("[data-gallery-open]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var gallery = document.getElementById("hikeGallery");
+        if (gallery) open(JSON.parse(gallery.getAttribute("data-photos")), 0);
+      });
+    });
+
+    lbClose.addEventListener("click", close);
+    lbPrev.addEventListener("click", function () { index = (index - 1 + photos.length) % photos.length; render(); });
+    lbNext.addEventListener("click", function () { index = (index + 1) % photos.length; render(); });
+    document.addEventListener("keydown", function (evt) {
+      if (lightbox.hidden) return;
+      if (evt.key === "Escape") close();
+      if (evt.key === "ArrowLeft") { index = (index - 1 + photos.length) % photos.length; render(); }
+      if (evt.key === "ArrowRight") { index = (index + 1) % photos.length; render(); }
+    });
+    var touchStartX = null;
+    lightbox.addEventListener("touchstart", function (evt) { touchStartX = evt.touches[0].clientX; }, { passive: true });
+    lightbox.addEventListener("touchend", function (evt) {
+      if (touchStartX === null) return;
+      var dx = evt.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 40) {
+        index = dx > 0 ? (index - 1 + photos.length) % photos.length : (index + 1) % photos.length;
+        render();
+      }
+      touchStartX = null;
     });
   }
 

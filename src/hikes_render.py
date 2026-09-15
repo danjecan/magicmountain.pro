@@ -1,5 +1,6 @@
 """Renders Hike objects (from notion_source) into the card / detail markup."""
-from components import btn, check_item, day_row, fact_bar, meta, newsletter, tag, text_block_html
+from components import (btn, check_item, day_row, deadline_countdown, fact_bar, gallery,
+                         lightbox_shell, meta, newsletter, places_meter, tag, text_block_html)
 from content import t
 from layout import hero, url_for
 from util import esc, fmt_date_full, fmt_date_range, fmt_huf, month_year
@@ -44,15 +45,21 @@ def status_tag(h, lang):
         return ""
     if h.is_full:
         return tag(t("waiting", lang))
-    if h.places_left is not None and h.places_total:
-        n = int(h.places_left)
-        label = f"{n} " + t("h_places_left", lang)
-        return tag(label)
     return ""
 
 
+def places_meter_for(h, lang, large=False):
+    """None when Notion doesn't have real numbers to show — never a guessed count."""
+    if h.is_past or h.places_total is None or h.places_left is None:
+        return ""
+    if h.is_full or h.places_left <= 0:
+        return places_meter(t("full_wait", lang), 0, h.places_total, large=large)
+    label = t("left_of", lang).format(left=int(h.places_left), total=int(h.places_total))
+    return places_meter(label, h.places_left, h.places_total, large=large)
+
+
 def hike_card(h, lang, small=False):
-    img_cls = "card-img-sm" if small else "card-img"
+    media_cls = "card-img-sm" if small else "card-img"
     date_str = fmt_date_range(h.date_start, h.date_end, lang) if h.date_start else t("tbc", lang)
     metas = meta("cal", date_str + (f" · {h.days} " + t("h_day", lang) + ("s" if lang == "en" and h.days != 1 else "") if h.days else ""))
     if _region(h, lang):
@@ -63,17 +70,22 @@ def hike_card(h, lang, small=False):
         badges += st
     title = _title(h, lang)
     desc = _teaser(h, lang)
+    meter = places_meter_for(h, lang) if not small else ""
     foot = ""
     if h.is_upcoming and h.price_huf:
         price_label = fmt_huf(h.price_huf) + " " + t("per_person", lang)
         cta_label = t("join_wait", lang) if h.is_full else t("details", lang)
         foot = f'<div class="card-foot"><span class="h4">{price_label}</span>{btn(cta_label, "primary", "sm", hike_url(h, lang))}</div>'
     d = f'<p class="muted card-desc">{esc(desc)}</p>' if desc and not h.is_past else ""
-    return f'''<a href="{hike_url(h, lang)}" style="display:block;color:inherit;">
-<div class="card" style="display:flex;flex-direction:column;height:100%;">
-  <div class="{img_cls}"><img src="{_image(h)}" alt="" loading="lazy"><div class="card-badges">{badges}</div></div>
-  <div class="card-body"><div class="card-meta">{metas}</div><h3 class="h3 card-title">{esc(title)}</h3>{d}{foot}</div>
-</div></a>'''
+    month_val = (h.date_start or "")[:7]
+    # The title link is stretched to cover the whole card (via CSS), rather than
+    # wrapping the card in <a> — the price-box CTA is also a link, and a browser
+    # will not tolerate one <a> nested inside another (it silently reflows the DOM).
+    return f'''<div class="card card-hike" style="display:flex;flex-direction:column;height:100%;"
+   data-audience="{h.audience}" data-difficulty="{h.difficulty}" data-month="{month_val}">
+  <div class="card-media {media_cls}"><img src="{_image(h)}" alt="" loading="lazy"><div class="card-badges">{badges}</div></div>
+  <div class="card-body"><div class="card-meta">{metas}</div><h3 class="h3 card-title"><a href="{hike_url(h, lang)}" class="stretched-link">{esc(title)}</a></h3>{d}{meter}{foot}</div>
+</div>'''
 
 
 def _paras(lst):
@@ -115,9 +127,13 @@ def price_box(h, lang, terms_href):
     signup_href = url_for(f"/sign-up/?hike={h.slug}", lang)
     cta = t("join_wait", lang) if h.is_full else t("h_cta", lang)
     full_note = f'<p class="muted small" style="text-align:center;">{t("h_full", lang)}</p>' if h.is_full else ""
+    meter = places_meter_for(h, lang, large=True)
+    dl = deadline_countdown(lang, h.signup_deadline) if h.signup_deadline else ""
     return f'''<div class="card"><div class="card-body" style="gap:16px;">
   <span class="eyebrow">{t("h_price", lang)}</span>
   <div style="display:flex;flex-direction:column;gap:4px;"><span class="h2" style="color:var(--orange);">{price_line}</span><span class="muted">{t("per_person", lang)}</span></div>
+  {meter}
+  {dl}
   <hr class="rule">
   <span class="eyebrow">{t("h_incl", lang)}</span>
   {checks}
@@ -150,11 +166,15 @@ def hike_detail_upcoming(h, lang, terms_href):
   </div>
   {text_block_html(t("h_prac", lang), t("h_get", lang), getting_html) if getting_html else ""}
 </div>'''
+    left_note = ""
+    if not h.is_full and h.places_left is not None:
+        left_note = f'<span class="small" style="font-weight:600;color:var(--orange);">{t("left_short", lang).format(left=int(h.places_left))}</span>'
+    book_cta = t("join_wait", lang) if h.is_full else t("h_cta", lang)
     body += f'''<div class="section split split-wide">
   {left_col}
   <div class="sidebar">{price_box(h, lang, terms_href)}</div>
 </div>
-<div class="book-bar" id="bookBar"><div style="display:flex;flex-direction:column;"><span class="h4" style="font-size:18px;">{fmt_huf(h.price_huf) if h.price_huf else ""}</span><span class="muted" style="font-size:13px;">{t("per_person", lang)}</span></div>{btn(t("h_cta", lang), "primary", "sm", url_for(f"/sign-up/?hike={h.slug}", lang))}</div>'''
+<div class="book-bar" id="bookBar"><div style="display:flex;flex-direction:column;"><span class="h4" style="font-size:18px;">{fmt_huf(h.price_huf) if h.price_huf else ""}</span>{left_note or f'<span class="muted" style="font-size:13px;">{t("per_person", lang)}</span>'}</div>{btn(book_cta, "primary", "sm", url_for(f"/sign-up/?hike={h.slug}", lang))}</div>'''
     return body
 
 
@@ -165,14 +185,15 @@ def hike_detail_past(h, lang):
                 esc(_title(h, lang)), esc(_teaser(h, lang)), tags=tags, alt=_title(h, lang))
     body += fact_bar_for_hike(h, lang)
     account_html = _paras(c.how_it_went) or _paras(c.like)
-    photos = h.photos[:3]
-    grid_imgs = "".join(f'<div style="border-radius:12px;overflow:hidden;height:200px;"><img src="{p}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"></div>' for p in photos)
-    photos_block = f'<div class="grid-2" style="gap:12px;">{grid_imgs}</div>' if grid_imgs else ""
+    gallery_html = gallery(h.photos, alt=_title(h, lang))
+    if len(h.photos) > 5:
+        gallery_html += f'<button type="button" class="link" style="display:inline-flex;align-items:center;gap:8px;background:none;border:0;cursor:pointer;" data-gallery-open="0">{t("g_all", lang).format(n=len(h.photos))}</button>'
     body += f'''<div class="section split split-wide">
   <div style="display:flex;flex-direction:column;gap:24px;">
     {text_block_html(t("p_how", lang), t("p_how_t", lang), account_html) if account_html else ""}
   </div>
-  <div>{photos_block}</div>
+  <div style="display:flex;flex-direction:column;gap:16px;">{gallery_html}</div>
 </div>
-<div style="padding-top:96px;">{newsletter(t("p_nl_eyebrow", lang), t("p_nl_title", lang), t("p_nl_lead", lang), lang)}</div>'''
+<div style="padding-top:96px;">{newsletter(t("p_nl_eyebrow", lang), t("p_nl_title", lang), t("p_nl_lead", lang), lang)}</div>
+{lightbox_shell(lang) if h.photos else ""}'''
     return body

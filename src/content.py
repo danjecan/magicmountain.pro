@@ -283,7 +283,28 @@ T = {
     "404_title": ("Page not found", "Az oldal nem található"),
     "404_text": ("This trail doesn't exist. Try the homepage, or the upcoming hikes.", "Ez az ösvény nem létezik. Próbáld a főoldalt, vagy a következő túrákat."),
     "404_home": ("Back to the homepage", "Vissza a főoldalra"),
+
+    # interaction layer: places meter, deadline countdown, filters, gallery, phone menu
+    "left_of": ("{left} of {total} places left", "{total} helyből {left} szabad"),
+    "full_wait": ("Full · waiting list open", "Betelt · várólista nyitva"),
+    "left_short": ("{left} places left", "{left} szabad hely"),
+    "dl_closes": ("Sign-up closes in", "Jelentkezési határidő"),
+    "dl_days": ("days", "nap"),
+    "dl_hours": ("hours", "óra"),
+    "fl_diff": ("Difficulty", "Nehézség"),
+    "fl_month": ("Month", "Hónap"),
+    "fl_any": ("Any", "Mind"),
+    "g_all": ("See all {n} photos", "Mind a {n} fotó"),
+    "g_more": ("+{n} photos", "+{n} fotó"),
+    "g_swipe": ("Swipe for the next photo", "Húzd el a következő fotóhoz"),
+    "m_note": ("No payment now. We confirm by email.", "Most nem kell fizetni. E-mailben visszaigazoljuk."),
+
+    "difficulty_easy": ("Easy", "Könnyű"),
+    "difficulty_moderate": ("Moderate", "Közepes"),
+    "difficulty_demanding": ("Demanding", "Nehéz"),
 }
+
+DIFFICULTY_KEYS = {"Easy": "difficulty_easy", "Moderate": "difficulty_moderate", "Demanding": "difficulty_demanding"}
 
 
 def t(key, lang):

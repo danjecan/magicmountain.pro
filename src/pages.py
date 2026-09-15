@@ -1,11 +1,12 @@
 """Top-level page assembly: home, hike list, about, sign-up, policies, 404."""
 from components import (band, btn, feature, field_select, field_text,
-                         field_textarea, newsletter, section_head, step, stepper,
-                         checkbox_field)
+                         field_textarea, filter_bar, newsletter, section_head, step,
+                         stepper, checkbox_field)
 from config import CONFIG
-from content import t, tl
+from content import DIFFICULTY_KEYS, t, tl
 from hikes_render import hike_card
 from layout import head, TAIL, nav, footer, hero, url_for
+from util import MONTHS_EN, MONTHS_HU
 
 
 def person_band(eyebrow, name, text, cta_label, cta_href, photo, photo_left):
@@ -59,11 +60,22 @@ def home(lang, upcoming_hikes, past_hikes):
 
 def hike_list_upcoming(lang, hikes):
     cards = "".join(hike_card(h, lang) for h in hikes)
-    grid = f'<div class="grid-3">{cards}</div>' if hikes else f'<p class="muted lead">{t("up_empty", lang)}</p>'
-    count_label = f"{len(hikes)} " + ("túra időponttal" if lang == "hu" else ("hikes with dates" if len(hikes) != 1 else "hike with dates"))
+    grid = f'<div class="grid-3" id="hikeGrid">{cards}</div>' if hikes else f'<p class="muted lead">{t("up_empty", lang)}</p>'
+
+    difficulties = sorted({h.difficulty for h in hikes if h.difficulty}, key=lambda d: ["Easy", "Moderate", "Demanding"].index(d) if d in ("Easy", "Moderate", "Demanding") else 9)
+    diff_opts = [(d, t(DIFFICULTY_KEYS.get(d, "fl_any"), lang)) for d in difficulties]
+    months_seen = sorted({(h.date_start or "")[:7] for h in hikes if h.date_start})
+    month_names = MONTHS_HU if lang == "hu" else MONTHS_EN
+    month_opts = []
+    for ym in months_seen:
+        y, m = ym.split("-")
+        label = f"{month_names[int(m) - 1]} {y}" if lang == "en" else f"{y}. {month_names[int(m) - 1]}"
+        month_opts.append((ym, label))
+
+    filters_html = filter_bar(lang, diff_opts, month_opts) if hikes else ""
     body = f'''<div class="section-first" style="display:flex;flex-direction:column;gap:32px;">
   <div style="display:flex;flex-direction:column;gap:12px;max-width:760px;"><span class="eyebrow">{t("l_eyebrow", lang)}</span><h1 class="h1">{t("l_title", lang)}</h1><p class="lead muted">{t("l_lead", lang)}</p></div>
-  {f'<span class="muted small">{count_label}</span>' if hikes else ''}
+  {filters_html}
   {grid}
 </div>
 <div style="padding-top:96px;">{newsletter(t("l_nl_eyebrow", lang), t("l_nl_title", lang), t("l_nl_lead", lang), lang)}</div>

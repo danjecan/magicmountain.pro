@@ -1,5 +1,7 @@
 """Reusable HTML fragments: buttons, tags, cards, form fields, bands. Ported
 from the design's component library (build.py), adapted to real markup."""
+import json
+
 from content import t
 from layout import icon
 from util import esc
@@ -135,3 +137,86 @@ def stepper(label, name, id_, value=0, min_=0, max_=10):
 def checkbox_field(text, name, id_):
     return (f'<div class="checkbox-row"><input type="checkbox" name="{name}" id="{id_}" required>'
             f'<label for="{id_}"><span>{text}</span></label></div>')
+
+
+# ───────── places meter, deadline countdown, filters, gallery + lightbox ─────────
+
+def places_meter(label, free, total, large=False):
+    """One segment per place: navy = taken, orange = free. free/total come straight
+    from Notion's Places left / Places total, never invented."""
+    total = int(total)
+    free = max(0, min(int(free), total))
+    segs = "".join(f'<i class="{"free" if k >= total - free else ""}"></i>' for k in range(total))
+    cls = "meter" + (" meter-lg" if large else "") + (" meter-full" if free == 0 else "")
+    return f'<div class="{cls}"><span class="meter-label">{label}</span><div class="meter-bar" aria-hidden="true">{segs}</div></div>'
+
+
+def deadline_countdown(lang, deadline_iso):
+    """Days/hours tiles counting down to a real Notion sign-up deadline. Ticks in
+    the browser (main.js) and hides itself once the deadline has passed."""
+    return f'''<div class="deadline" data-deadline="{deadline_iso}" hidden>
+  <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+    <span class="eyebrow" style="display:inline-flex;align-items:center;gap:6px;">{icon("clock")}{t("dl_closes", lang)}</span>
+  </div>
+  <div class="deadline-tiles">
+    <div class="tile"><b data-deadline-days>–</b><span>{t("dl_days", lang)}</span></div>
+    <div class="tile"><b data-deadline-hours>–</b><span>{t("dl_hours", lang)}</span></div>
+  </div>
+</div>'''
+
+
+def filter_select(id_, label, options):
+    """options: list of (value, label) tuples, first is the 'Any' default."""
+    opts = "".join(f'<option value="{esc(v)}">{esc(lbl)}</option>' for v, lbl in options)
+    return (f'<span class="select"><select id="{id_}" aria-label="{esc(label)}">{opts}</select>{icon("chev")}</span>')
+
+
+def filter_bar(lang, difficulty_options, month_options, count_id="hikeCount"):
+    all_label = t("l_all", lang)
+    return f'''<div class="filters" id="hikeFilters">
+  <button type="button" class="btn btn-primary btn-sm" data-audience="all" aria-pressed="true">{all_label}</button>
+  <button type="button" class="btn btn-secondary btn-sm" data-audience="Adults" aria-pressed="false">{t("adults", lang)}</button>
+  <button type="button" class="btn btn-secondary btn-sm" data-audience="Families" aria-pressed="false">{t("families", lang)}</button>
+  <span class="filters-sep"></span>
+  {filter_select("filterDifficulty", t("fl_diff", lang), [("", t("fl_diff", lang) + ": " + t("fl_any", lang))] + difficulty_options)}
+  {filter_select("filterMonth", t("fl_month", lang), [("", t("fl_month", lang) + ": " + t("fl_any", lang))] + month_options)}
+  <span class="muted small" style="margin-left:8px;" id="{count_id}"></span>
+</div>'''
+
+
+def gallery(photos, alt=""):
+    """Past-hike photo gallery -> lightbox. Only rendered when real photos exist
+    (no stand-in stock photos for a specific trip's account of what happened)."""
+    if not photos:
+        return ""
+    shown = photos[:5]
+    more = len(photos) - len(shown)
+    items = []
+    for i, src in enumerate(shown):
+        span = i == 0
+        h = 300 if span else 190
+        is_last = i == len(shown) - 1 and more > 0
+        overlay = f'<span class="g-more" data-gallery-index="{i}">{icon("photo", "ico", "width:28px;height:28px;")}+{more}</span>' if is_last else \
+            f'<span class="g-zoom">{icon("expand")}</span>'
+        items.append(f'<button type="button" class="g-item" data-gallery-index="{i}" style="height:{h}px;{"grid-column:1 / -1;" if span else ""}border:0;padding:0;cursor:pointer;"><img src="{src}" alt="{esc(alt)}" loading="lazy">{overlay}</button>')
+    photos_json = json.dumps(photos).replace("'", "&#39;")
+    return f'<div class="gallery" id="hikeGallery" data-photos=\'{photos_json}\'>{"".join(items)}</div>'
+
+
+def lightbox_shell(lang):
+    """One hidden lightbox per page; JS fills in the image/counter/thumbnails from
+    the triggering gallery's data-photos when opened."""
+    return f'''<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="{esc(t("g_swipe", lang))}" hidden style="position:fixed;inset:0;z-index:50;">
+  <div class="lb-top">
+    <span style="font-weight:700;letter-spacing:0.04em;" id="lbCounter"></span>
+    <button type="button" class="icon-btn" id="lbClose" style="background:rgba(245,245,245,0.12);" aria-label="{t("menu_close", lang)}">{icon("close", "ico", "width:24px;height:24px;stroke-width:2.2;")}</button>
+  </div>
+  <div class="lb-stage">
+    <img id="lbImage" src="" alt="">
+    <button type="button" class="lb-nav icon-btn" id="lbPrev" style="left:24px;background:rgba(245,245,245,0.12);" aria-label="Previous">{icon("left", "ico", "width:26px;height:26px;")}</button>
+    <button type="button" class="lb-nav icon-btn" id="lbNext" style="right:24px;background:rgba(245,245,245,0.12);" aria-label="Next">{icon("right", "ico", "width:26px;height:26px;")}</button>
+  </div>
+  <div class="lb-foot">
+    <div class="lb-thumbs" id="lbThumbs"></div>
+  </div>
+</div>'''
