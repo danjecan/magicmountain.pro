@@ -64,8 +64,9 @@ def head(lang, path, title, description, canonical_path=None, og_image=None):
 <meta property="og:url" content="{this_url}">
 <meta property="og:image" content="{og}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="/assets/img/logo.png" type="image/png">
-<link rel="apple-touch-icon" href="/assets/img/logo.png">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/img/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
