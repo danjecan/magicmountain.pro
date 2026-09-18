@@ -32,7 +32,8 @@ def meta(icon_name, text):
 
 
 def section_head(eyebrow, title, link_text=None, link_href="#"):
-    lk = f'<a href="{link_href}" class="link">{link_text}</a>' if link_text else ""
+    txt = link_text.replace(" →", ' <span class="arrow">→</span>') if link_text else link_text
+    lk = f'<a href="{link_href}" class="link">{txt}</a>' if link_text else ""
     return (f'<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;">'
             f'<div style="display:flex;flex-direction:column;gap:8px;"><span class="eyebrow">{eyebrow}</span><h2 class="h2">{title}</h2></div>{lk}</div>')
 

@@ -58,7 +58,7 @@ def places_meter_for(h, lang, large=False):
     return places_meter(label, h.places_left, h.places_total, large=large)
 
 
-def hike_card(h, lang, small=False):
+def hike_card(h, lang, small=False, level=3):
     media_cls = "card-img-sm" if small else "card-img"
     date_str = fmt_date_range(h.date_start, h.date_end, lang) if h.date_start else t("tbc", lang)
     metas = meta("cal", date_str + (f" · {h.days} " + t("h_day", lang) + ("s" if lang == "en" and h.days != 1 else "") if h.days else ""))
@@ -85,7 +85,7 @@ def hike_card(h, lang, small=False):
     return f'''<div class="card card-hike" style="display:flex;flex-direction:column;height:100%;" data-glint-hover
    data-audience="{h.audience}" data-difficulty="{h.difficulty}" data-month="{month_val}" data-country="{h.country}" data-year="{year_val}">
   <div class="card-media {media_cls}"><img src="{_image(h)}" alt="" loading="lazy"><div class="card-badges">{badges}</div></div>
-  <div class="card-body"><div class="card-meta">{metas}</div><h3 class="h3 card-title"><a href="{hike_url(h, lang)}" class="stretched-link">{esc(title)}</a></h3>{d}{meter}{foot}</div>
+  <div class="card-body"><div class="card-meta">{metas}</div><h{level} class="h3 card-title"><a href="{hike_url(h, lang)}" class="stretched-link">{esc(title)}</a></h{level}>{d}{meter}{foot}</div>
 </div>'''
 
 

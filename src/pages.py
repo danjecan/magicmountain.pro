@@ -5,7 +5,7 @@ from components import (band, btn, feature, field_select, field_text,
 from config import CONFIG
 from content import COUNTRY_KEYS, DIFFICULTY_KEYS, t, tl
 from hikes_render import hike_card
-from layout import head, TAIL, nav, footer, hero, url_for
+from layout import head, TAIL, nav, footer, hero, icon, url_for
 from util import MONTHS_EN, MONTHS_HU
 
 
@@ -59,7 +59,8 @@ def home(lang, upcoming_hikes, past_hikes):
 # ───────────────────────── HIKE LIST ─────────────────────────
 
 def hike_list_upcoming(lang, hikes):
-    cards = "".join(hike_card(h, lang) for h in hikes)
+    # page title is the H1 and nothing else on this page is an H2, so the cards are H2
+    cards = "".join(hike_card(h, lang, level=2) for h in hikes)
     grid = f'<div class="grid-3" id="hikeGrid">{cards}</div>' if hikes else f'<p class="muted lead">{t("up_empty", lang)}</p>'
 
     difficulties = sorted({h.difficulty for h in hikes if h.difficulty}, key=lambda d: ["Easy", "Moderate", "Demanding"].index(d) if d in ("Easy", "Moderate", "Demanding") else 9)
@@ -87,7 +88,8 @@ PAST_PAGE_SIZE = 6
 
 
 def hike_list_past(lang, hikes):
-    cards = "".join(hike_card(h, lang, small=True) for h in hikes)
+    # page title is the H1 and nothing else on this page is an H2, so the cards are H2
+    cards = "".join(hike_card(h, lang, small=True, level=2) for h in hikes)
     grid = (f'<div class="grid-3" id="hikeGrid" data-past-list data-page-size="{PAST_PAGE_SIZE}">{cards}</div>'
             if hikes else f'<p class="muted lead">{t("up_empty", lang)}</p>')
 
@@ -230,13 +232,30 @@ def policies(lang):
 
 
 # ───────────────────────── 404 ─────────────────────────
+# The one page with nothing to read, so the illustration carries it: a hiker at a fork
+# in the trail with a signpost, then three ways back and the contact address.
 
 def not_found(lang):
-    body = f'''<div class="section-first" style="display:flex;flex-direction:column;gap:16px;align-items:flex-start;min-height:40vh;justify-content:center;">
-  <span class="eyebrow">404</span>
-  <h1 class="h1">{t("404_title", lang)}</h1>
-  <p class="lead muted">{t("404_text", lang)}</p>
-  {btn(t("404_home", lang), "primary", href=url_for("/", lang))}
+    ways = "".join(
+        f'<a href="{href}" class="link" style="display:flex;align-items:center;justify-content:space-between;gap:16px;'
+        f'padding:18px 20px;border-radius:12px;background:var(--white);box-shadow:0 1px 0 rgba(0,31,97,0.08);">'
+        f'<span class="h4">{t(key, lang)}</span>{icon("right", "ico", "width:22px;height:22px;flex:none;")}</a>'
+        for key, href in (
+            ("e404_up", url_for("/hikes/", lang)),
+            ("e404_past", url_for("/hikes/past/", lang)),
+            ("e404_home", url_for("/", lang)),
+        ))
+    body = hero("/assets/img/bg-lost.jpg", t("e404_eyebrow", lang), t("e404_title", lang), t("e404_lead", lang),
+                alt="A hiker at a fork in the trail, looking at a signpost",
+                img_style="object-position:52% 74%;transform:scaleX(-1);")
+    body += f'''<div class="section-first split" style="align-items:start;">
+  <div style="display:flex;flex-direction:column;gap:12px;">{ways}</div>
+  <div class="band band-light band-pad" style="margin:0;display:flex;flex-direction:column;gap:10px;">
+    <span class="eyebrow">{t("f_contact", lang)}</span>
+    <p class="h4">{t("e404_help_t", lang)}</p>
+    <p class="muted">{t("e404_help", lang)}</p>
+    <a href="mailto:magicmountain.pro@gmail.com" class="link footer-mail" style="color:var(--blue);">{t("f_email", lang)}</a>
+  </div>
 </div>
 '''
-    return page_shell(lang, "/404/", t("meta_404_title", lang), t("404_text", lang), None, body)
+    return page_shell(lang, "/404/", t("meta_404_title", lang), t("e404_lead", lang), None, body)

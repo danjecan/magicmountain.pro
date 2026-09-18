@@ -155,7 +155,8 @@ def nav(lang, active_path=None):
 
 
 def col(title, links):
-    items = "".join(f'<a href="{h}" class="link">{esc(x)}</a>' for x, h in links)
+    """links: (label, href) or (label, href, extra class) tuples."""
+    items = "".join(f'<a href="{l[1]}" class="link{" " + l[2] if len(l) > 2 else ""}">{esc(l[0])}</a>' for l in links)
     return f'<div style="display:flex;flex-direction:column;gap:10px;"><span class="eyebrow">{title}</span>{items}</div>'
 
 
@@ -175,7 +176,7 @@ def footer(lang):
         <p class="muted small" style="opacity:0.8;">#weareuimla #societateaghizilor</p>
       </div>
       {col(L("f_hikes"), [(L("nav_up"), up), (L("nav_past"), past), (L("f_signup"), signup)])}
-      {col(L("f_contact"), [(L("f_email"), "mailto:magicmountain.pro@gmail.com"), (L("nav_about"), about)])}
+      {col(L("f_contact"), [(L("f_email"), "mailto:magicmountain.pro@gmail.com", "footer-mail"), (L("nav_about"), about)])}
       {col(L("f_follow"), [("Facebook · Magic Mountain", "https://www.facebook.com/magicmountain.pro"), ("Facebook · Családi kalandozások a Bükkben (Anett)", "https://www.facebook.com/profile.php?id=61575855355176")])}
       {col(L("f_legal"), [(L("f_terms"), terms), (L("f_privacy"), terms + "#privacy"), (L("f_insurance"), terms + "#insurance")])}
     </div>
@@ -189,11 +190,12 @@ def footer(lang):
 '''
 
 
-def hero(img, eyebrow, title_html, lead, ctas="", tags="", home=False, alt=""):
+def hero(img, eyebrow, title_html, lead, ctas="", tags="", home=False, alt="", img_style=""):
     tg = f'<div style="display:flex;gap:8px;flex-wrap:wrap;">{tags}</div>' if tags else ""
     ct = f'<div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">{ctas}</div>' if ctas else ""
+    st = f' style="{img_style}"' if img_style else ""
     return f'''<div class="band band-dark on-dark hero{" hero-home" if home else ""}" style="margin:0;border-radius:0;">
-  <div class="hero-bg" data-parallax="0.5"><img src="{img}" alt="{esc(alt)}"></div>{HERO_CLOUDS_SVG}<div class="hero-shade"></div>{HERO_LAYERS_SVG}
+  <div class="hero-bg" data-parallax="0.5"><img src="{img}" alt="{esc(alt)}"{st}></div>{HERO_CLOUDS_SVG}<div class="hero-shade"></div>{HERO_LAYERS_SVG}
   <div class="hero-content">{tg}<span class="eyebrow" style="color:var(--peach);">{eyebrow}</span><h1 class="h1">{title_html}</h1><p class="lead" style="max-width:600px;">{lead}</p>{ct}</div>
 </div>
 '''
