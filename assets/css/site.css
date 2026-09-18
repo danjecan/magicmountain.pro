@@ -193,8 +193,11 @@ body.sheet-open { overflow: hidden; }
 /* ── Filters ── */
 .filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .select { position: relative; display: inline-flex; align-items: center; height: 40px; border-radius: 6px; border: 1.5px solid rgba(0,31,97,0.25); background: var(--white); }
-.select select { appearance: none; background: none; border: none; height: 100%; padding: 0 32px 0 14px; font-size: 15px; color: var(--navy); font-family: inherit; cursor: pointer; }
-.select svg { position: absolute; right: 10px; pointer-events: none; }
+/* The chevron's arms are diagonal and open, and they point up into the corner radius, so the
+   same numeric inset as the label reads tighter on the right. 14px right against the icon's
+   own position gives it room to breathe, optically level with the label's left inset. */
+.select select { appearance: none; background: none; border: none; height: 100%; padding: 0 36px 0 14px; font-size: 15px; color: var(--navy); font-family: inherit; cursor: pointer; }
+.select svg { position: absolute; right: 14px; pointer-events: none; }
 .filters-sep { width: 1px; height: 28px; background: rgba(0,31,97,0.15); margin: 0 8px; }
 
 /* ── Gallery + lightbox ── */
