@@ -2,7 +2,7 @@
 build.py components, turned into real semantic HTML (real <nav>, a working
 mobile menu, SEO/OG meta, hreflang alternates) instead of canvas artboard markup."""
 from content import t
-from hero_art import HERO_LAYERS_SVG
+from hero_art import HERO_CLOUDS_SVG, HERO_LAYERS_SVG
 from util import esc
 
 SITE_NAME = "Magic Mountain"
@@ -70,6 +70,7 @@ def head(lang, path, title, description, canonical_path=None, og_image=None):
 <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
+<canvas id="glints" class="glints" aria-hidden="true"></canvas>
 <a class="skip-link" href="#main">{t("skip_link", lang)}</a>
 '''
 
@@ -192,7 +193,7 @@ def hero(img, eyebrow, title_html, lead, ctas="", tags="", home=False, alt=""):
     tg = f'<div style="display:flex;gap:8px;flex-wrap:wrap;">{tags}</div>' if tags else ""
     ct = f'<div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">{ctas}</div>' if ctas else ""
     return f'''<div class="band band-dark on-dark hero{" hero-home" if home else ""}" style="margin:0;border-radius:0;">
-  <div class="hero-bg" data-parallax="0.5"><img src="{img}" alt="{esc(alt)}"></div><div class="hero-shade"></div>{HERO_LAYERS_SVG}
+  <div class="hero-bg" data-parallax="0.5"><img src="{img}" alt="{esc(alt)}"></div>{HERO_CLOUDS_SVG}<div class="hero-shade"></div>{HERO_LAYERS_SVG}
   <div class="hero-content">{tg}<span class="eyebrow" style="color:var(--peach);">{eyebrow}</span><h1 class="h1">{title_html}</h1><p class="lead" style="max-width:600px;">{lead}</p>{ct}</div>
 </div>
 '''

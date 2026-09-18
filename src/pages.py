@@ -184,7 +184,7 @@ def signup(lang, upcoming_hikes):
           <input type="text" name="{CONFIG.gas_honeypot_field}" id="{CONFIG.gas_honeypot_field}" tabindex="-1" autocomplete="off">
         </div>
         <div class="form-actions" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:20px;">
-          {btn(t("s_send", lang), "primary", type_="submit")}
+          {btn(t("s_send", lang), "primary", type_="submit", glint="big")}
           <span class="muted small">{t("s_nopay", lang)}</span>
         </div>
         <div class="alert alert-success" id="signupOk" role="status" hidden>

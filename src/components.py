@@ -9,14 +9,18 @@ from util import esc
 NAVY, ORANGE = "#001F61", "#FE6B00"
 
 
-def btn(label, variant="primary", size="", href="#", extra="", type_=None, name=None, id_=None):
+def btn(label, variant="primary", size="", href="#", extra="", type_=None, name=None, id_=None, glint=True):
+    """glint: True for the normal press puff (the default — every button is
+    something you act on), "big" for the sign-up form's wider, slower one,
+    or False to opt out (e.g. a button that's really a filter toggle)."""
     cls = f"btn btn-{variant}" + (f" btn-{size}" if size else "")
     st = f' style="{extra}"' if extra else ""
     idattr = f' id="{id_}"' if id_ else ""
+    glintattr = "" if not glint else (' data-glint="big"' if glint == "big" else " data-glint")
     if type_:
         nm = f' name="{name}"' if name else ""
-        return f'<button type="{type_}"{nm} class="{cls}"{st}{idattr}>{label}</button>'
-    return f'<a href="{href}" class="{cls}"{st}{idattr}>{label}</a>'
+        return f'<button type="{type_}"{nm} class="{cls}"{st}{idattr}{glintattr}>{label}</button>'
+    return f'<a href="{href}" class="{cls}"{st}{idattr}{glintattr}>{label}</a>'
 
 
 def tag(text, kind=""):

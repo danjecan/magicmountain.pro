@@ -52,3 +52,47 @@ def _build_hero_layers():
 
 
 HERO_LAYERS_SVG = _build_hero_layers()
+
+
+def _wisp(seed, lobes=6, w=200.0, h=26.0):
+    """A flat, lumpy cloud wisp: bumpy lit top, flat base, lobes shrinking towards
+    both ends so it thins out instead of stopping. Returns (fill path, top-edge path)."""
+    r = random.Random(seed)
+    base = h - 3.0
+    xs = [w * (i / lobes) for i in range(lobes + 1)]
+    tops = []
+    for i, x in enumerate(xs):
+        edge = min(i, lobes - i) / (lobes / 2.0)
+        tops.append((x, base - (1.4 + r.uniform(0, 1) * 6.4) * (0.3 + 0.7 * edge)))
+    d, top = [f"M{xs[0]:.1f},{base:.1f}"], []
+    for i in range(len(tops) - 1):
+        (x0, y0), (x1, y1) = tops[i], tops[i + 1]
+        cx = (x0 + x1) / 2
+        d.append(f"C{cx:.1f},{y0:.1f} {cx:.1f},{y1:.1f} {x1:.1f},{y1:.1f}")
+        top.append((x0, y0, cx, x1, y1))
+    fill = " ".join(d) + f" L{xs[-1]:.1f},{base:.1f} Z"
+    e = [f"M{top[0][0]:.1f},{top[0][1]:.1f}"]
+    for x0, y0, cx, x1, y1 in top:
+        e.append(f"C{cx:.1f},{y0:.1f} {cx:.1f},{y1:.1f} {x1:.1f},{y1:.1f}")
+    return fill, " ".join(e)
+
+
+# seed, lobes, body, lit edge — colours sampled from the hero illustration's own sky
+_WISPS = ((11, 7, "#F8842B", "#FBD29A"), (4, 5, "#EBB55F", "#FCE3C0"),
+          (23, 8, "#F87A25", "#F9C98B"), (7, 6, "#6E8FC4", "#A8BFE0"))
+
+
+def _build_hero_clouds():
+    """Four wisps drifting across the hero sky, 50-85s to cross, fading at both
+    edges. CSS only (see .hero-sky/.wisp/@keyframes drift), so it costs nothing;
+    off for reduced motion, half speed on phones."""
+    out = []
+    for i, (seed, lobes, fill, edge) in enumerate(_WISPS, start=1):
+        f, e = _wisp(seed, lobes)
+        out.append(f'<svg class="wisp w{i}" viewBox="0 0 200 26" preserveAspectRatio="none" aria-hidden="true">'
+                   f'<path d="{f}" fill="{fill}"></path>'
+                   f'<path d="{e}" fill="none" stroke="{edge}" stroke-width="1.8" stroke-linecap="round"></path></svg>')
+    return f'<div class="hero-sky" aria-hidden="true">{"".join(out)}</div>'
+
+
+HERO_CLOUDS_SVG = _build_hero_clouds()

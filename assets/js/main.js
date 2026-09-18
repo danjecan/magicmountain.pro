@@ -329,4 +329,101 @@
       }
     });
   });
+
+  // ---- Glints: a short scatter of warm light where a visitor acts —
+  // arriving on a hike card, pressing a button, sending the sign-up (wider,
+  // slower). Never follows the cursor; off entirely for reduced motion.
+  var glintCanvas = document.getElementById("glints");
+  if (glintCanvas && window.requestAnimationFrame) {
+    var gctx = glintCanvas.getContext("2d");
+    var reduceMotionMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var gparts = [];
+    var graf = null;
+    var glast = 0;
+
+    var glintsOn = function () { return !reduceMotionMQ.matches; };
+
+    var sizeCanvas = function () {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      glintCanvas.width = window.innerWidth * dpr;
+      glintCanvas.height = window.innerHeight * dpr;
+      glintCanvas.style.width = window.innerWidth + "px";
+      glintCanvas.style.height = window.innerHeight + "px";
+      gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    sizeCanvas();
+    window.addEventListener("resize", sizeCanvas);
+
+    var puff = function (x, y, spread, count, life) {
+      if (!glintsOn()) return;
+      for (var i = 0; i < count; i++) {
+        gparts.push({
+          x: x + (Math.random() - 0.5) * spread, y: y + (Math.random() - 0.5) * 12,
+          vx: (Math.random() - 0.5) * 0.5, vy: -(0.2 + Math.random() * 0.7),
+          r: 0.7 + Math.random() * 1.05,
+          rot: Math.random() * 3.14, spin: (Math.random() - 0.5) * 2.2,
+          seed: Math.random() * 6.28, glint: Math.random() < 0.45,
+          t: 0, life: life * (0.7 + Math.random() * 0.6),
+          warm: Math.random() < 0.5
+        });
+      }
+      if (!graf) graf = window.requestAnimationFrame(tick);
+    };
+
+    function tick(now) {
+      var dt = Math.min(now - (glast || now), 40);
+      glast = now;
+      gctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      gparts = gparts.filter(function (p) {
+        p.t += dt;
+        if (p.t > p.life) return false;
+        p.x += p.vx * dt * 0.06; p.y += p.vy * dt * 0.06; p.vy += 0.00035 * dt;
+        var f = p.t / p.life;
+        var tw = 0.65 + 0.35 * Math.sin((p.t / 90) + p.seed);
+        var a = (1 - f) * 0.92 * Math.min(1, f * 8) * tw;
+        var r = p.r * (1 - f * 0.35);
+        gctx.save();
+        gctx.translate(p.x, p.y);
+        gctx.rotate(p.rot + f * p.spin);
+        gctx.globalCompositeOperation = "lighter";
+        gctx.fillStyle = p.warm ? "rgba(254,107,0," + a + ")" : "rgba(245,245,245," + a + ")";
+        if (p.glint) {
+          gctx.beginPath();
+          gctx.moveTo(0, -r * 3.1); gctx.lineTo(r * 0.62, -r * 0.62); gctx.lineTo(r * 3.1, 0);
+          gctx.lineTo(r * 0.62, r * 0.62); gctx.lineTo(0, r * 3.1); gctx.lineTo(-r * 0.62, r * 0.62);
+          gctx.lineTo(-r * 3.1, 0); gctx.lineTo(-r * 0.62, -r * 0.62);
+          gctx.closePath(); gctx.fill();
+        } else {
+          gctx.fillRect(-r * 0.5, -r * 0.5, r, r);
+        }
+        gctx.restore();
+        return true;
+      });
+      if (gparts.length) {
+        graf = window.requestAnimationFrame(tick);
+      } else {
+        graf = null; glast = 0;
+        gctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      }
+    }
+
+    document.querySelectorAll("[data-glint-hover]").forEach(function (el) {
+      var armed = true;
+      el.addEventListener("pointerenter", function (evt) {
+        if (evt.pointerType !== "mouse" || !armed) return;
+        armed = false;
+        var r = (el.querySelector(".card-media") || el).getBoundingClientRect();
+        puff(r.left + r.width / 2, r.top + 12, r.width * 0.75, 7, 750);
+      });
+      el.addEventListener("pointerleave", function () { armed = true; });
+    });
+
+    document.querySelectorAll("[data-glint]").forEach(function (el) {
+      el.addEventListener("pointerdown", function () {
+        var r = el.getBoundingClientRect();
+        var big = el.getAttribute("data-glint") === "big";
+        puff(r.left + r.width / 2, r.top + r.height / 2, r.width * (big ? 0.95 : 0.6), big ? 14 : 8, big ? 1100 : 650);
+      });
+    });
+  }
 })();
