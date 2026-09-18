@@ -13,7 +13,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+import json  # noqa: E402
+
 import pages  # noqa: E402
+from hikes_render import hike_manifest_entry  # noqa: E402
 from layout import url_for  # noqa: E402
 from notion_source import fetch_hikes  # noqa: E402
 from seo import ROBOTS, build_sitemap  # noqa: E402
@@ -58,6 +61,8 @@ def main():
     past = sorted([h for h in hikes if h.is_past], key=lambda h: h.date_start or "", reverse=True)
     print(f"Loaded {len(hikes)} published hikes ({len(upcoming)} upcoming, {len(past)} past).")
 
+    # /sign-up/received/ is a transactional page reached only after a real submission,
+    # so it's left out of the sitemap.
     static_paths = ["/", "/hikes/", "/hikes/past/", "/about/", "/sign-up/", "/terms/"]
     hike_paths = [f"/hikes/{h.slug}/" for h in upcoming] + [f"/hikes/past/{h.slug}/" for h in past]
 
@@ -67,7 +72,16 @@ def main():
         write_page(dist_dir, lang, "/hikes/past/", pages.hike_list_past(lang, past))
         write_page(dist_dir, lang, "/about/", pages.about(lang))
         write_page(dist_dir, lang, "/sign-up/", pages.signup(lang, upcoming))
+        write_page(dist_dir, lang, "/sign-up/received/", pages.signup_received(lang))
         write_page(dist_dir, lang, "/terms/", pages.policies(lang))
+
+        # The sign-up-received page is one static page shared by every submission; it
+        # looks up the specific hike (by slug, from ?hike=) in this manifest client-side.
+        manifest = {h.slug: hike_manifest_entry(h, lang) for h in upcoming}
+        data_dir = os.path.join(dist_dir, "assets", "data")
+        os.makedirs(data_dir, exist_ok=True)
+        with open(os.path.join(data_dir, f"hikes-{lang}.json"), "w", encoding="utf-8") as f:
+            json.dump(manifest, f, ensure_ascii=False)
 
         from hikes_render import hike_detail_upcoming, hike_detail_past
         terms_href = url_for("/terms/", lang)

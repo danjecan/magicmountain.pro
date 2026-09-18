@@ -261,13 +261,26 @@
   }
 
   // ---- Sign-up form -> Google Apps Script, with a honeypot ----
+  // On success (including the honeypot's pretend-success) this redirects to
+  // /sign-up/received/ rather than showing a banner under the button: a banner left
+  // the filled-in form on screen, so nothing looked finished, and on a phone it fell
+  // below the fold. Who signed up travels in sessionStorage, not the URL, since it's
+  // personal and doesn't need to survive a refresh; the hike slug travels as ?hike=
+  // because that page's photo/title do need to survive a refresh or a link from the
+  // confirmation email.
   var signupForm = document.getElementById("signupForm");
   if (signupForm) {
+    var goToReceived = function (hikeSlug, adults, children, email) {
+      try {
+        sessionStorage.setItem("mm_signup_summary", JSON.stringify({ adults: adults, children: children, email: email }));
+      } catch (e) { /* private browsing / storage disabled: the received page shows its generic version */ }
+      var base = document.documentElement.lang === "hu" ? "/hu/sign-up/received/" : "/sign-up/received/";
+      window.location.href = hikeSlug ? base + "?hike=" + encodeURIComponent(hikeSlug) : base;
+    };
+
     signupForm.addEventListener("submit", function (evt) {
       evt.preventDefault();
-      var okBox = document.getElementById("signupOk");
       var errBox = document.getElementById("signupErr");
-      okBox.hidden = true;
       errBox.hidden = true;
 
       if (!signupForm.checkValidity()) {
@@ -275,12 +288,17 @@
         return;
       }
 
+      var data = new FormData(signupForm);
+      var hikeSlug = data.get("hike_slug") || "";
+      var adults = data.get("adults") || "";
+      var children = data.get("children") || "";
+      var email = data.get("email") || "";
+
       // Honeypot: a real visitor never fills this hidden field. If it's filled,
       // pretend the submission worked (never tell a bot it was caught) and stop.
       var honeypot = signupForm.querySelector('.honeypot-field input[type="text"]');
       if (honeypot && honeypot.value.trim() !== "") {
-        okBox.hidden = false;
-        signupForm.reset();
+        goToReceived(hikeSlug, adults, children, email);
         return;
       }
 
@@ -289,7 +307,6 @@
       submitBtn.disabled = true;
       submitBtn.textContent = submitBtn.getAttribute("data-sending-label") || originalLabel;
 
-      var data = new FormData(signupForm);
       data.append("page_lang", document.documentElement.lang);
       data.append("page_url", window.location.href);
 
@@ -299,18 +316,60 @@
         body: data,      // read the response, so treat a resolved fetch as success.
       })
         .then(function () {
-          okBox.hidden = false;
-          signupForm.reset();
-          signupForm.querySelectorAll(".stepper output").forEach(function (o) { o.textContent = o.id === "adults_count" ? "2" : "0"; });
+          goToReceived(hikeSlug, adults, children, email);
         })
         .catch(function () {
           errBox.hidden = false;
-        })
-        .finally(function () {
           submitBtn.disabled = false;
           submitBtn.textContent = originalLabel;
         });
     });
+  }
+
+  // ---- Sign-up received: fill in the specific hike (from ?hike=, looked up in
+  // hikes-<lang>.json) and who signed up (from sessionStorage, set by the form
+  // right before it redirected here). Left as built — the generic version — if
+  // either is missing, e.g. a direct visit or a refresh after the tab session ended. ----
+  var doneHero = document.getElementById("doneHero");
+  if (doneHero) {
+    var hikeSlug = new URLSearchParams(window.location.search).get("hike");
+    if (hikeSlug) {
+      fetch("/assets/data/hikes-" + document.documentElement.lang + ".json")
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (hikes) {
+          var h = hikes && hikes[hikeSlug];
+          if (!h) return;
+          var img = document.getElementById("doneHeroImg");
+          img.src = h.image;
+          img.alt = h.title;
+          document.getElementById("doneHeroTitle").textContent = h.title;
+          var fills = document.querySelectorAll("#doneHeroMeta [data-fill]");
+          fills[0].textContent = h.dateMeta;
+          fills[1].textContent = h.region;
+          document.getElementById("doneHeroMeta").hidden = false;
+        })
+        .catch(function () { /* stays the generic version */ });
+    }
+
+    var summary = null;
+    try { summary = JSON.parse(sessionStorage.getItem("mm_signup_summary") || "null"); } catch (e) { /* ignore */ }
+    if (summary) {
+      var adults = parseInt(summary.adults, 10) || 0;
+      var children = parseInt(summary.children, 10) || 0;
+      var whoEl = document.getElementById("dWho");
+      if (whoEl) {
+        var text = (whoEl.getAttribute("data-tpl") || "")
+          .replace("{adults}", adults).replace("{adults_s}", adults === 1 ? "" : "s")
+          .replace("{children}", children).replace("{children_word}", children === 1 ? "child" : "children");
+        whoEl.querySelector("[data-fill]").textContent = text;
+        whoEl.hidden = false;
+      }
+      var mailEl = document.getElementById("dMail");
+      if (mailEl && summary.email) {
+        mailEl.querySelector("[data-fill]").textContent = summary.email;
+        mailEl.hidden = false;
+      }
+    }
   }
 
   // ---- Newsletter forms -> Mailchimp (double opt-in is a list setting) ----
@@ -425,5 +484,14 @@
         puff(r.left + r.width / 2, r.top + r.height / 2, r.width * (big ? 0.95 : 0.6), big ? 14 : 8, big ? 1100 : 650);
       });
     });
+
+    // The sign-up-received page's one celebration beat: a puff seeded from the
+    // arrival badge's centre as soon as it's on screen. puff() is already a no-op
+    // under reduced motion, matching the CSS ring/tick's own reduced-motion handling.
+    var arriveBadge = document.getElementById("arriveBadge");
+    if (arriveBadge) {
+      var ar = arriveBadge.getBoundingClientRect();
+      puff(ar.left + ar.width / 2, ar.top + ar.height / 2, ar.width * 1.6, 12, 950);
+    }
   }
 })();

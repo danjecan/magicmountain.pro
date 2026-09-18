@@ -1,12 +1,12 @@
 """Top-level page assembly: home, hike list, about, sign-up, policies, 404."""
-from components import (band, btn, feature, field_select, field_text,
+from components import (arrival_badge, band, btn, feature, field_select, field_text,
                          field_textarea, filter_bar, newsletter, section_head, step,
                          stepper, checkbox_field)
 from config import CONFIG
 from content import COUNTRY_KEYS, DIFFICULTY_KEYS, t, tl
 from hikes_render import hike_card
 from layout import head, TAIL, nav, footer, hero, icon, url_for
-from util import MONTHS_EN, MONTHS_HU
+from util import MONTHS_EN, MONTHS_HU, esc
 
 
 def person_band(eyebrow, name, text, cta_label, cta_href, photo, photo_left):
@@ -189,9 +189,6 @@ def signup(lang, upcoming_hikes):
           {btn(t("s_send", lang), "primary", type_="submit", glint="big")}
           <span class="muted small">{t("s_nopay", lang)}</span>
         </div>
-        <div class="alert alert-success" id="signupOk" role="status" hidden>
-          <strong>{t("s_ok_title", lang)}</strong><br>{t("s_ok_text", lang)}
-        </div>
         <div class="alert alert-error" id="signupErr" role="alert" hidden>
           {t("s_err", lang)} <a href="mailto:magicmountain.pro@gmail.com">{t("f_email", lang)}</a>.
         </div>
@@ -205,6 +202,62 @@ def signup(lang, upcoming_hikes):
 </div>
 '''
     return page_shell(lang, "/sign-up/", t("meta_signup_title", lang), t("s_lead", lang), "/sign-up/", body)
+
+
+# ───────────────────────── SIGN-UP RECEIVED ─────────────────────────
+# Where the sign-up form redirects on success. A banner under the button was too easy to
+# miss — the filled-in form stayed on screen, so nothing looked finished, and on a phone
+# the message fell below the fold. This is one static page shared by every submission;
+# main.js fills in the specific hike (from ?hike=slug, looked up in hikes-<lang>.json)
+# and who signed up (from sessionStorage, set by the form right before it redirects here).
+
+def signup_received(lang):
+    summary = f'''<div class="card"><div class="card-body" style="gap:20px;padding:28px;">
+      <span class="eyebrow">{t("d_what", lang)}</span>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <span id="dWho" hidden style="display:flex;align-items:flex-start;gap:10px;" data-tpl="{esc(t("d_who", lang))}">{icon("ppl", "ico", "margin-top:3px;")}<span data-fill></span></span>
+        <span id="dMail" hidden style="display:flex;align-items:flex-start;gap:10px;">{icon("mail", "ico", "margin-top:3px;")}<span>{t("d_mail", lang)} <strong data-fill></strong></span></span>
+      </div>
+      <hr class="rule">
+      <span class="muted small">{t("d_nopay", lang)}</span>
+    </div></div>'''
+    steps = band("dark", f'''<div style="display:flex;flex-direction:column;gap:24px;">
+      <span class="eyebrow">{t("s_next", lang)}</span>
+      {step(1, t("s_n1t", lang), t("s_n1", lang))}{step(2, t("s_n2t", lang), t("s_n2", lang))}
+      {step(3, t("s_n3t", lang), t("s_n3", lang))}{step(4, t("s_n4t", lang), t("s_n4", lang))}
+    </div>''', "band-pad", "margin:0;padding:32px;")
+    # The hero starts generic and h1 doubles as the fallback headline; main.js swaps in the
+    # actual hike's photo/title/dates when it can look one up, so the page shows the real
+    # mountain someone signed up for rather than the idea of one.
+    hero_body = f'''<div class="band band-dark on-dark hero" id="doneHero">
+  <div class="hero-bg"><img id="doneHeroImg" src="/assets/img/bg-peaks.jpg" alt=""></div><div class="hero-shade"></div>
+  <div class="hero-content">
+    <div style="display:flex;align-items:center;gap:20px;">
+      {arrival_badge()}
+      <span class="eyebrow" style="color:var(--peach);">{t("d_eyebrow", lang)}</span>
+    </div>
+    <h1 class="h1" id="doneHeroTitle" style="margin:0;">{t("d_title", lang)}</h1>
+    <div id="doneHeroMeta" hidden style="display:flex;gap:16px;flex-wrap:wrap;">
+      <span class="meta">{icon("cal")}<span data-fill></span></span>
+      <span class="meta">{icon("mtn")}<span data-fill></span></span>
+    </div>
+  </div>
+</div>'''
+    body = f'''{hero_body}
+<div class="section" style="display:flex;flex-direction:column;gap:32px;">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px;">
+    <h2 class="h2" style="margin:0;">{t("d_title", lang)}</h2>
+    <p class="lead muted">{t("d_held", lang)} {t("d_lead", lang)}</p>
+  </div>
+  <div style="max-width:880px;display:flex;flex-direction:column;gap:32px;">
+    {summary}
+    {steps}
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">{btn(t("d_more", lang), href=url_for("/hikes/", lang))}<a href="{url_for("/", lang)}" class="link">{t("d_home", lang)}</a></div>
+    <p class="muted small">{t("d_wrong", lang)} <a href="#">[PHONE]</a></p>
+  </div>
+</div>
+'''
+    return page_shell(lang, "/sign-up/received/", t("meta_signup_done_title", lang), t("d_lead", lang), None, body)
 
 
 # ───────────────────────── POLICIES ─────────────────────────

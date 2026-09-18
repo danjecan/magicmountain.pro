@@ -35,6 +35,16 @@ def hike_url(h, lang):
     return url_for(f"/hikes/{kind + '/' if kind else ''}{h.slug}/", lang)
 
 
+def hike_manifest_entry(h, lang):
+    """One upcoming hike's public details, for the sign-up-received page to look up by
+    slug client-side (it's a single static page shared by every submission, so it can't
+    know at build time which hike a given visitor just signed up for)."""
+    date_meta = fmt_date_range(h.date_start, h.date_end, lang) if h.date_start else t("tbc", lang)
+    if h.days:
+        date_meta += f" · {h.days} " + t("h_day", lang) + ("s" if lang == "en" and h.days != 1 else "")
+    return {"title": _title(h, lang), "image": _image(h), "dateMeta": date_meta, "region": _region(h, lang)}
+
+
 def audience_tag(h, lang):
     key = "families" if h.audience == "Families" else "adults"
     return tag(t(key, lang), "dark")

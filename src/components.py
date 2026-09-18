@@ -47,6 +47,14 @@ def check_item(text):
     return f'<div class="check-item">{icon("check")}<span>{text}</span></div>'
 
 
+def arrival_badge():
+    """The one celebration beat on the site: the ring pops in and the tick draws itself
+    (CSS), and main.js throws a puff of canvas glints from its centre on page load. Used
+    once, on the sign-up-received page."""
+    ring = icon("check", "ico", "width:36px;height:36px;stroke:var(--navy);stroke-width:2.6;")
+    return f'<div class="arrive" id="arriveBadge"><div class="arrive-ring">{ring}</div></div>'
+
+
 def band(tone, inner, cls="band-pad", style=""):
     st = f' style="{style}"' if style else ""
     return f'<div class="band band-{tone}{" on-dark" if tone == "dark" else ""} {cls}"{st}>{inner}</div>'
