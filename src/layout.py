@@ -1,12 +1,27 @@
 """Page shell: <head>, nav, footer, and the icon set. Ported from the design's
 build.py components, turned into real semantic HTML (real <nav>, a working
 mobile menu, SEO/OG meta, hreflang alternates) instead of canvas artboard markup."""
+import hashlib
+import os
+
 from content import t
 from hero_art import HERO_CLOUDS_SVG, HERO_LAYERS_SVG
 from util import esc
 
 SITE_NAME = "Magic Mountain"
 SITE_URL = "https://magicmountain.pro"
+
+_ASSETS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+
+
+def asset_url(path):
+    """/assets/... URL with a content hash, so a changed stylesheet or script is
+    never served from a phone's cache after a deploy."""
+    try:
+        with open(os.path.join(_ASSETS, path), "rb") as f:
+            return f"/assets/{path}?v={hashlib.md5(f.read()).hexdigest()[:8]}"
+    except OSError:
+        return f"/assets/{path}"
 
 ICONS = {
     "cal": '<rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path>',
@@ -67,7 +82,7 @@ def head(lang, path, title, description, canonical_path=None, og_image=None):
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/assets/img/favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="{asset_url('css/site.css')}">
 </head>
 <body>
 <canvas id="glints" class="glints" aria-hidden="true"></canvas>
@@ -78,7 +93,7 @@ def head(lang, path, title, description, canonical_path=None, og_image=None):
 def tail():
     from config import CONFIG
     return (f'<script>window.MM_GAS_URL = {CONFIG.gas_url!r};</script>\n'
-            f'<script src="/assets/js/main.js" defer></script>\n</body>\n</html>\n')
+            f'<script src="{asset_url("js/main.js")}" defer></script>\n</body>\n</html>\n')
 
 
 TAIL = tail()
