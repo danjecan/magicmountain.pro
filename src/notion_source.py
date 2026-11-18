@@ -306,7 +306,8 @@ def _download(url, dest_path):
 
 def fetch_hikes(dist_dir, database_id=None, token=None):
     token = token or os.environ.get("NOTION_TOKEN")
-    database_id = database_id or os.environ.get("NOTION_DATABASE_ID", DEFAULT_DATABASE_ID)
+    # `or`, not a get() default: the workflow passes an unset repo variable as "".
+    database_id = database_id or os.environ.get("NOTION_DATABASE_ID") or DEFAULT_DATABASE_ID
     if not token:
         print("NOTION_TOKEN not set — building with zero hikes (empty states only).")
         return []
