@@ -305,6 +305,8 @@ body.sheet-open { overflow: hidden; }
   .filters .btn { width: 100%; padding: 0 8px; }
   .filters-sep { display: none; }
   .filters .select { grid-column: span 3; justify-content: space-between; height: 44px; }
+  /* The whole box must be tappable, not just the text-width select inside it. */
+  .filters .select select { width: 100%; }
   .filters #hikeCount { grid-column: span 3; margin-left: 0 !important; }
   .deadline { flex-direction: column; align-items: stretch; }
   .deadline-tiles .tile { flex: 1; }
