@@ -205,12 +205,19 @@ def footer(lang):
 '''
 
 
-def hero(img, eyebrow, title_html, lead, ctas="", tags="", home=False, alt="", img_style=""):
+def hero(img, eyebrow, title_html, lead, ctas="", tags="", home=False, alt="", img_style="", scenic=True):
+    """scenic: the drifting cloud wisps and illustrated ridge/treeline layers. On for
+    the home and about heroes, which use a generic illustrated scene; off for a hike's
+    own hero, where the photo is the specific place someone's going and the drawn
+    mountains over a photo of different mountains read as a mismatch. The shade stays
+    either way -- it's there for text legibility, not decoration."""
     tg = f'<div style="display:flex;gap:8px;flex-wrap:wrap;">{tags}</div>' if tags else ""
     ct = f'<div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">{ctas}</div>' if ctas else ""
     st = f' style="{img_style}"' if img_style else ""
+    clouds = HERO_CLOUDS_SVG if scenic else ""
+    layers = HERO_LAYERS_SVG if scenic else ""
     return f'''<div class="band band-dark on-dark hero{" hero-home" if home else ""}" style="margin:0;border-radius:0;">
-  <div class="hero-bg" data-parallax="0.5"><img src="{img}" alt="{esc(alt)}"{st}></div>{HERO_CLOUDS_SVG}<div class="hero-shade"></div>{HERO_LAYERS_SVG}
+  <div class="hero-bg" data-parallax="0.5"><img src="{img}" alt="{esc(alt)}"{st}></div>{clouds}<div class="hero-shade"></div>{layers}
   <div class="hero-content">{tg}<span class="eyebrow" style="color:var(--peach);">{eyebrow}</span><h1 class="h1">{title_html}</h1><p class="lead" style="max-width:600px;">{lead}</p>{ct}</div>
 </div>
 '''

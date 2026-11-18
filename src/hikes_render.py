@@ -156,7 +156,7 @@ def hike_detail_upcoming(h, lang, terms_href):
     c = _content(h, lang)
     eyebrow = f"{t('families' if h.audience == 'Families' else 'adults', lang)} · {h.days} {t('h_day', lang)} · {h.country}"
     tags = audience_tag(h, lang) + status_tag(h, lang)
-    body = hero(_image(h), eyebrow, esc(_title(h, lang)), esc(_teaser(h, lang)), tags=tags, alt=_title(h, lang))
+    body = hero(_image(h), eyebrow, esc(_title(h, lang)), esc(_teaser(h, lang)), tags=tags, alt=_title(h, lang), scenic=False)
     body += fact_bar_for_hike(h, lang)
     days_html = "".join(
         day_row(f"{t('h_day', lang)} {d.n}" if lang == "en" else f"{d.n}. nap", esc(d.title), d.text, d.stats)
@@ -187,7 +187,7 @@ def hike_detail_past(h, lang):
     c = _content(h, lang)
     tags = audience_tag(h, lang) + tag(t("past_tag", lang) + " · " + month_year(h.date_start, lang))
     body = hero(_image(h), f"{t('families' if h.audience=='Families' else 'adults', lang)} · {h.days} {t('h_day', lang)} · {h.country}",
-                esc(_title(h, lang)), esc(_teaser(h, lang)), tags=tags, alt=_title(h, lang))
+                esc(_title(h, lang)), esc(_teaser(h, lang)), tags=tags, alt=_title(h, lang), scenic=False)
     body += fact_bar_for_hike(h, lang)
     account_html = _paras(c.how_it_went) or _paras(c.like)
     gallery_html = gallery(h.photos, alt=_title(h, lang))
