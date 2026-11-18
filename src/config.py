@@ -13,6 +13,9 @@ class Config:
     def __init__(self):
         # Google Apps Script Web App URL that receives sign-up form POSTs.
         self.gas_url = os.environ.get("GAS_SIGNUP_URL", "https://script.google.com/macros/s/REPLACE_WITH_APPS_SCRIPT_DEPLOYMENT_ID/exec")
+        # Cloudflare Turnstile site key (public by design). Empty = no widget; the Apps Script
+        # then also has no secret and skips the check. See gas/Code.gs.
+        self.turnstile_site_key = os.environ.get("TURNSTILE_SITE_KEY", "")
         # Name of the honeypot field the sign-up form and the Apps Script backend agree on.
         self.gas_honeypot_field = os.environ.get("GAS_HONEYPOT_FIELD", "company_website")
 

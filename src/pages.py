@@ -140,12 +140,22 @@ def about(lang):
 
 def signup(lang, upcoming_hikes):
     terms_href = url_for("/terms/", lang)
-    hike_opts = [(h.slug, f"{(h.title_hu if lang=='hu' else h.title_en) or h.title_en} · {h.date_start[:10] if h.date_start else t('tbc', lang)}")
-                 for h in upcoming_hikes]
-    if not hike_opts:
-        hike_opts = [("", t("s_which_empty", lang))]
-    which_field = field_select(t("s_which", lang), "hike_slug", "hike_slug", hike_opts, required=bool(upcoming_hikes))
+    hike_opts_html = "".join(
+        f'<option value="{esc(h.slug)}" data-audience="{esc(h.audience)}">'
+        f'{esc((h.title_hu if lang == "hu" else h.title_en) or h.title_en)} · {h.date_start[:10] if h.date_start else t("tbc", lang)}</option>'
+        for h in upcoming_hikes) or f'<option value="">{esc(t("s_which_empty", lang))}</option>'
+    which_req = " required" if upcoming_hikes else ""
+    which_field = (f'<div class="field"><label for="hike_slug">{t("s_which", lang)}</label>'
+                   f'<select class="input" name="hike_slug" id="hike_slug"{which_req}>{hike_opts_html}</select></div>')
     fit_opts = list(zip(["<3h", "3-6h", "6-8h", "8h+", "none"], tl("s_fit_opts", lang)))
+    kw_opts = list(zip(["<2h", "2-4h", "4h+", "unsure"], tl("s_kw_opts", lang)))
+    yn = tl("s_yesno", lang)
+    yn_opts = [("No", yn[0]), ("Yes", yn[1])]
+    choose = [("", t("s_choose", lang))]
+    turnstile = ""
+    if CONFIG.turnstile_site_key:
+        turnstile = (f'<div class="cf-turnstile" data-sitekey="{esc(CONFIG.turnstile_site_key)}" data-appearance="interaction-only"></div>'
+                     '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>')
     next_steps_inner = (f'<div style="display:flex;flex-direction:column;gap:24px;"><span class="eyebrow">{t("s_next", lang)}</span>'
                          f'{step(1, t("s_n1t", lang), t("s_n1", lang))}{step(2, t("s_n2t", lang), t("s_n2", lang))}'
                          f'{step(3, t("s_n3t", lang), t("s_n3", lang))}{step(4, t("s_n4t", lang), t("s_n4", lang))}</div>')
@@ -159,6 +169,7 @@ def signup(lang, upcoming_hikes):
           <span class="eyebrow">{t("s_1", lang)}</span>
           {which_field}
           <div class="grid-2" style="gap:20px;">{stepper(t("s_adults", lang), "adults", "adults_count", 2)}{stepper(t("s_children", lang), "children", "children_count", 0)}</div>
+          <div data-show-children hidden>{field_text(t("s_childages", lang), "child_ages", "child_ages", hint=t("s_childages_h", lang))}</div>
         </div>
         <hr class="rule" style="margin:20px 0;">
         <div style="display:flex;flex-direction:column;gap:20px;">
@@ -173,7 +184,28 @@ def signup(lang, upcoming_hikes):
         <hr class="rule" style="margin:20px 0;">
         <div style="display:flex;flex-direction:column;gap:20px;">
           <span class="eyebrow">{t("s_3", lang)}</span>
-          {field_select(t("s_fit", lang), "fitness", "fitness", fit_opts)}
+          <p class="muted small" style="margin:0;">{t("s_inv_h", lang)}</p>
+          <div class="grid-2" style="gap:20px;">
+            {field_text(t("s_bname", lang), "billing_name", "billing_name", hint=t("s_bname_h", lang), required=False)}
+            {field_text(t("s_country", lang), "country", "country", value="Magyarország" if lang == "hu" else "Hungary")}
+            {field_text(t("s_postcode", lang), "postcode", "postcode")}
+            {field_text(t("s_city", lang), "city", "city")}
+          </div>
+          {field_text(t("s_street", lang), "street", "street")}
+          <div class="grid-2" style="gap:20px;">
+            {field_text(t("s_company", lang), "company", "company", required=False)}
+            {field_text(t("s_tax", lang), "tax_number", "tax_number", required=False)}
+          </div>
+        </div>
+        <hr class="rule" style="margin:20px 0;">
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <span class="eyebrow">{t("s_4", lang)}</span>
+          <div data-show-for="Adults" hidden>{field_select(t("s_fit", lang), "fitness", "fitness", fit_opts, hint=t("s_fit_h", lang))}</div>
+          <div data-show-for="Families" hidden style="display:flex;flex-direction:column;gap:20px;">
+            {field_select(t("s_kw", lang), "kids_walk", "kids_walk", kw_opts)}
+            {field_select(t("s_carry", lang), "carry_child", "carry_child", yn_opts)}
+          </div>
+          {field_select(t("s_health", lang), "health_flag", "health_flag", choose + yn_opts, hint=t("s_health_h", lang))}
           {field_textarea(t("s_notes", lang), "notes", "notes", t("s_notes_ph", lang), t("s_notes_h", lang))}
         </div>
         <hr class="rule" style="margin:20px 0;">
@@ -185,6 +217,7 @@ def signup(lang, upcoming_hikes):
           <label for="{CONFIG.gas_honeypot_field}">Leave this field empty</label>
           <input type="text" name="{CONFIG.gas_honeypot_field}" id="{CONFIG.gas_honeypot_field}" tabindex="-1" autocomplete="off">
         </div>
+        {turnstile}
         <div class="form-actions" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:20px;">
           {btn(t("s_send", lang), "primary", type_="submit", glint="big")}
           <span class="muted small">{t("s_nopay", lang)}</span>

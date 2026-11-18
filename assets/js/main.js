@@ -270,6 +270,31 @@
   // confirmation email.
   var signupForm = document.getElementById("signupForm");
   if (signupForm) {
+    var formOpenedAt = Date.now();
+
+    // Questions that only make sense for one kind of hike (adults: fitness; families:
+    // kids' walking + carrying) or only when there are children (their ages). Hidden
+    // groups are disabled so they are neither submitted nor block validation.
+    var setGroup = function (el, show) {
+      el.hidden = !show;
+      el.querySelectorAll("input, select, textarea").forEach(function (f) { f.disabled = !show; });
+    };
+    var syncConditional = function () {
+      var sel = document.getElementById("hike_slug");
+      var opt = sel && sel.options[sel.selectedIndex];
+      var audience = opt ? opt.getAttribute("data-audience") : "";
+      signupForm.querySelectorAll("[data-show-for]").forEach(function (g) {
+        setGroup(g, g.getAttribute("data-show-for") === audience);
+      });
+      var kids = parseInt((document.getElementById("children_count-hidden") || {}).value, 10) || 0;
+      signupForm.querySelectorAll("[data-show-children]").forEach(function (g) { setGroup(g, kids > 0); });
+    };
+    var hikeSel = document.getElementById("hike_slug");
+    if (hikeSel) hikeSel.addEventListener("change", syncConditional);
+    signupForm.addEventListener("click", function (evt) {
+      if (evt.target.closest && evt.target.closest(".stepper")) setTimeout(syncConditional, 0);
+    });
+    syncConditional();
     var goToReceived = function (hikeSlug, adults, children, email) {
       try {
         sessionStorage.setItem("mm_signup_summary", JSON.stringify({ adults: adults, children: children, email: email }));
@@ -307,8 +332,18 @@
       submitBtn.disabled = true;
       submitBtn.textContent = submitBtn.getAttribute("data-sending-label") || originalLabel;
 
+      // Until the backend is connected (placeholder URL) nothing would receive this, and
+      // the no-cors fetch below can't tell the difference: say so instead of pretending.
+      if (!window.MM_GAS_URL || window.MM_GAS_URL.indexOf("REPLACE") !== -1) {
+        errBox.hidden = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalLabel;
+        return;
+      }
+
       data.append("page_lang", document.documentElement.lang);
       data.append("page_url", window.location.href);
+      data.append("form_ms", String(Date.now() - formOpenedAt));
 
       fetch(window.MM_GAS_URL, {
         method: "POST",
