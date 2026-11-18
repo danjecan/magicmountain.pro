@@ -27,7 +27,7 @@ def tag(text, kind=""):
     return f'<span class="tag{(" tag-" + kind) if kind else ""}">{text}</span>'
 
 
-# Flat, simplified flags for the four countries we actually run hikes in — a hike
+# Flat, simplified flags for the countries we actually run hikes in — a hike
 # card badge, not a reference rendering, so Slovakia drops its coat of arms and
 # Georgia simplifies to the one cross that still reads at 39x26px. Unmapped
 # countries ("Other") get no flag rather than a wrong or blank one.
@@ -36,6 +36,7 @@ FLAGS = {
     "Hungary": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="0.667" fill="#CE1126"/><rect width="3" height="0.667" y="0.667" fill="#FFFFFF"/><rect width="3" height="0.667" y="1.333" fill="#436F4D"/></svg>',
     "Slovakia": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="0.667" fill="#FFFFFF"/><rect width="3" height="0.667" y="0.667" fill="#0B4EA2"/><rect width="3" height="0.667" y="1.333" fill="#EE1C25"/></svg>',
     "Georgia": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="2" fill="#FFFFFF"/><rect width="3" height="0.4" y="0.8" fill="#FF0000"/><rect width="0.4" height="2" x="1.3" fill="#FF0000"/></svg>',
+    "Morocco": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="2" fill="#C1272D"/><path d="M1.5 0.5 L1.794 1.405 L1.0245 0.8455 L1.9755 0.8455 L1.206 1.405 Z" fill="none" stroke="#006233" stroke-width="0.07"/></svg>',
 }
 
 
