@@ -109,7 +109,11 @@ textarea.input { height: 120px; padding: 12px 16px; resize: vertical; }
 .band { border-radius: 16px; overflow: hidden; margin: 0 24px; }
 .band-dark { background: var(--navy); } .band-light { background: var(--peach); } .band-pad { padding: 64px 48px; }
 .hero { position: relative; height: 520px; overflow: hidden; } .hero-home { height: 640px; }
-.hero-bg { position: absolute; inset: -8% 0 0 0; }
+/* Buffered on both edges, not just the top: the parallax transform can push the image
+   either direction (it's negative right at page load, since the hero already sits
+   88px below the viewport top behind the nav before any scrolling happens), and a
+   one-sided buffer left the other edge exposing the band's own background. */
+.hero-bg { position: absolute; inset: -10% 0 -10% 0; }
 .hero-bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .hero-shade { position: absolute; inset: 0; background:
     linear-gradient(90deg, rgba(0,31,97,0.72) 0%, rgba(0,31,97,0.58) 30%, rgba(0,31,97,0.22) 55%, rgba(0,31,97,0) 72%),
