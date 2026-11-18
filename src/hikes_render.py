@@ -1,7 +1,7 @@
 """Renders Hike objects (from notion_source) into the card / detail markup."""
 from components import (btn, check_item, country_flag, day_row, deadline_countdown, fact_bar, gallery,
                          lightbox_shell, meta, newsletter, places_meter, tag, text_block_html)
-from content import t
+from content import COUNTRY_KEYS, DIFFICULTY_KEYS, t
 from layout import hero, url_for
 from util import esc, fmt_date_full, fmt_date_range, fmt_huf, month_year
 
@@ -18,6 +18,14 @@ def _teaser(h, lang):
 
 def _region(h, lang):
     return (h.region_hu if lang == "hu" else h.region_en) or ""
+
+
+def _difficulty(h, lang):
+    return t(DIFFICULTY_KEYS[h.difficulty], lang) if h.difficulty in DIFFICULTY_KEYS else (h.difficulty or "—")
+
+
+def _country(h, lang):
+    return t(COUNTRY_KEYS[h.country], lang) if h.country in COUNTRY_KEYS else h.country
 
 
 def _content(h, lang):
@@ -108,7 +116,7 @@ def fact_bar_for_hike(h, lang):
         if h.meeting_point:
             items.append(("pin", t("p_base", lang), h.meeting_point))
     else:
-        items.append(("mtn", t("h_diff", lang), h.difficulty or "—"))
+        items.append(("mtn", t("h_diff", lang), _difficulty(h, lang)))
         if h.meeting_point:
             items.append(("pin", t("h_meet", lang), h.meeting_point))
         if h.signup_deadline:
@@ -154,7 +162,7 @@ def price_box(h, lang, terms_href):
 
 def hike_detail_upcoming(h, lang, terms_href):
     c = _content(h, lang)
-    eyebrow = f"{t('families' if h.audience == 'Families' else 'adults', lang)} · {h.days} {t('h_day', lang)} · {h.country}"
+    eyebrow = f"{t('families' if h.audience == 'Families' else 'adults', lang)} · {h.days} {t('h_day', lang)} · {_country(h, lang)}"
     tags = audience_tag(h, lang) + status_tag(h, lang)
     body = hero(_image(h), eyebrow, esc(_title(h, lang)), esc(_teaser(h, lang)), tags=tags, alt=_title(h, lang), scenic=False)
     body += fact_bar_for_hike(h, lang)
@@ -186,7 +194,7 @@ def hike_detail_upcoming(h, lang, terms_href):
 def hike_detail_past(h, lang):
     c = _content(h, lang)
     tags = audience_tag(h, lang) + tag(t("past_tag", lang) + " · " + month_year(h.date_start, lang))
-    body = hero(_image(h), f"{t('families' if h.audience=='Families' else 'adults', lang)} · {h.days} {t('h_day', lang)} · {h.country}",
+    body = hero(_image(h), f"{t('families' if h.audience=='Families' else 'adults', lang)} · {h.days} {t('h_day', lang)} · {_country(h, lang)}",
                 esc(_title(h, lang)), esc(_teaser(h, lang)), tags=tags, alt=_title(h, lang), scenic=False)
     body += fact_bar_for_hike(h, lang)
     account_html = _paras(c.how_it_went) or _paras(c.like)
