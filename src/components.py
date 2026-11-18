@@ -27,6 +27,27 @@ def tag(text, kind=""):
     return f'<span class="tag{(" tag-" + kind) if kind else ""}">{text}</span>'
 
 
+# Flat, simplified flags for the four countries we actually run hikes in — a hike
+# card badge, not a reference rendering, so Slovakia drops its coat of arms and
+# Georgia simplifies to the one cross that still reads at 39x26px. Unmapped
+# countries ("Other") get no flag rather than a wrong or blank one.
+FLAGS = {
+    "Romania": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="1" height="2" fill="#002B7F"/><rect width="1" height="2" x="1" fill="#FCD116"/><rect width="1" height="2" x="2" fill="#CE1126"/></svg>',
+    "Hungary": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="0.667" fill="#CE1126"/><rect width="3" height="0.667" y="0.667" fill="#FFFFFF"/><rect width="3" height="0.667" y="1.333" fill="#436F4D"/></svg>',
+    "Slovakia": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="0.667" fill="#FFFFFF"/><rect width="3" height="0.667" y="0.667" fill="#0B4EA2"/><rect width="3" height="0.667" y="1.333" fill="#EE1C25"/></svg>',
+    "Georgia": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="2" fill="#FFFFFF"/><rect width="3" height="0.4" y="0.8" fill="#FF0000"/><rect width="0.4" height="2" x="1.3" fill="#FF0000"/></svg>',
+}
+
+
+def country_flag(country):
+    """A small flag badge for the card's top-right corner, or "" if the country
+    isn't one of the four we have a flag for."""
+    svg = FLAGS.get(country)
+    if not svg:
+        return ""
+    return f'<div class="card-badges-right"><span class="flag-badge" title="{esc(country)}" aria-label="{esc(country)}">{svg}</span></div>'
+
+
 def meta(icon_name, text):
     return f'<span class="meta">{icon(icon_name)}{text}</span>'
 

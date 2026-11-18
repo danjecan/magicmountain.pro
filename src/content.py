@@ -21,7 +21,6 @@ T = {
     "waiting": ("Waiting list", "Várólista"),
     "upcoming": ("Upcoming", "Hamarosan"),
     "past_tag": ("Past hike", "Korábbi túra"),
-    "details": ("Hike details", "Részletek"),
     "join_wait": ("Join waiting list", "Várólistára"),
     "sign_up_short": ("Sign up", "Jelentkezés"),
     "per_person": ("/ person", "/ fő"),

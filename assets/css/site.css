@@ -88,17 +88,24 @@ textarea.input { height: 120px; padding: 12px 16px; resize: vertical; }
 .card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 0 rgba(0,31,97,0.08), 0 12px 32px -20px rgba(0,31,97,0.35); }
 .card-body { display: flex; flex-direction: column; gap: 12px; padding: 24px; flex: 1; }
 .card-meta { display: flex; gap: 16px; flex-wrap: wrap; row-gap: 4px; }
-.card-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.card-desc { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.card-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 4px; }
+/* Fixed to exactly 2/3 lines (not just clamped) so card bottoms stay level in a row
+   regardless of how long the title or description actually run. em-based, so it
+   tracks the mobile font-size breakpoint automatically. */
+.card-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.3em; }
+.card-desc { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 4.5em; }
 .card-title a { color: inherit; text-decoration: none; }
 .card-hike { position: relative; }
 .stretched-link::after { content: ""; position: absolute; inset: 0; z-index: 1; }
-.card-foot .btn { position: relative; z-index: 2; }
 .card-media { position: relative; background: var(--blue); flex: none; overflow: hidden; }
 .card-img { height: 260px; } .card-img-sm { height: 220px; }
 .card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .card-badges { position: absolute; top: 16px; left: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+/* Country flag: opposite top corner from the audience tag, same 26px height, just a
+   drop shadow for depth (no ring) so it sits quietly on whatever photo is behind it. */
+.card-badges-right { position: absolute; top: 16px; right: 16px; display: flex; }
+.flag-badge { display: inline-flex; width: 39px; height: 26px; border-radius: 4px; overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,16,52,0.35); flex: none; }
+.flag-badge svg { width: 100%; height: 100%; display: block; }
 .band { border-radius: 16px; overflow: hidden; margin: 0 24px; }
 .band-dark { background: var(--navy); } .band-light { background: var(--peach); } .band-pad { padding: 64px 48px; }
 .hero { position: relative; height: 520px; overflow: hidden; } .hero-home { height: 640px; }
@@ -288,8 +295,6 @@ body.sheet-open { overflow: hidden; }
   .card-img, .card-img-sm { height: 200px; }
   .about-photo { min-height: 240px; }
   .card-meta { row-gap: 4px; }
-  .card-foot { flex-direction: column; align-items: stretch; gap: 12px; }
-  .card-foot .btn { width: 100%; }
   .form-card .card-body { padding: 20px !important; gap: 24px !important; }
   .form-actions .btn { width: 100%; }
   .day { grid-template-columns: 1fr; gap: 8px; padding: 20px 0; }

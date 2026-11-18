@@ -1,5 +1,5 @@
 """Renders Hike objects (from notion_source) into the card / detail markup."""
-from components import (btn, check_item, day_row, deadline_countdown, fact_bar, gallery,
+from components import (btn, check_item, country_flag, day_row, deadline_countdown, fact_bar, gallery,
                          lightbox_shell, meta, newsletter, places_meter, tag, text_block_html)
 from content import t
 from layout import hero, url_for
@@ -71,31 +71,25 @@ def places_meter_for(h, lang, large=False):
 def hike_card(h, lang, small=False, level=3):
     media_cls = "card-img-sm" if small else "card-img"
     date_str = fmt_date_range(h.date_start, h.date_end, lang) if h.date_start else t("tbc", lang)
-    metas = meta("cal", date_str + (f" · {h.days} " + t("h_day", lang) + ("s" if lang == "en" and h.days != 1 else "") if h.days else ""))
+    metas = meta("cal", date_str)
     if _region(h, lang):
         metas += meta("mtn", _region(h, lang))
     badges = audience_tag(h, lang)
     st = status_tag(h, lang)
     if st:
         badges += st
+    flag = country_flag(h.country)
     title = _title(h, lang)
     desc = _teaser(h, lang)
-    meter = places_meter_for(h, lang) if not small else ""
-    foot = ""
-    if h.is_upcoming and h.price_huf:
-        price_label = fmt_huf(h.price_huf) + " " + t("per_person", lang)
-        cta_label = t("join_wait", lang) if h.is_full else t("details", lang)
-        foot = f'<div class="card-foot"><span class="h4">{price_label}</span>{btn(cta_label, "primary", "sm", hike_url(h, lang))}</div>'
     d = f'<p class="muted card-desc">{esc(desc)}</p>' if desc and not h.is_past else ""
     month_val = (h.date_start or "")[:7]
     year_val = (h.date_start or "")[:4]
-    # The title link is stretched to cover the whole card (via CSS), rather than
-    # wrapping the card in <a> — the price-box CTA is also a link, and a browser
-    # will not tolerate one <a> nested inside another (it silently reflows the DOM).
+    # The title link is stretched to cover the whole card (via CSS) rather than wrapping
+    # the card in <a>, so a nested interactive element inside it is never invalid HTML.
     return f'''<div class="card card-hike" style="display:flex;flex-direction:column;height:100%;" data-glint-hover
    data-audience="{h.audience}" data-difficulty="{h.difficulty}" data-month="{month_val}" data-country="{h.country}" data-year="{year_val}">
-  <div class="card-media {media_cls}"><img src="{_image(h)}" alt="" loading="lazy"><div class="card-badges">{badges}</div></div>
-  <div class="card-body"><div class="card-meta">{metas}</div><h{level} class="h3 card-title"><a href="{hike_url(h, lang)}" class="stretched-link">{esc(title)}</a></h{level}>{d}{meter}{foot}</div>
+  <div class="card-media {media_cls}"><img src="{_image(h)}" alt="" loading="lazy"><div class="card-badges">{badges}</div>{flag}</div>
+  <div class="card-body"><div class="card-meta">{metas}</div><h{level} class="h3 card-title"><a href="{hike_url(h, lang)}" class="stretched-link">{esc(title)}</a></h{level}>{d}</div>
 </div>'''
 
 
