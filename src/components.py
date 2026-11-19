@@ -28,13 +28,13 @@ def tag(text, kind=""):
 
 
 # Flat, simplified flags for the countries we actually run hikes in — a hike
-# card badge, not a reference rendering, so Slovakia drops its coat of arms and
-# Georgia simplifies to the one cross that still reads at 39x26px. Unmapped
+# card badge, not a reference rendering. Slovakia keeps a simplified coat of arms (without it
+# the flag is identical to Russia's); Georgia simplifies to the one cross that still reads at 39x26px. Unmapped
 # countries ("Other") get no flag rather than a wrong or blank one.
 FLAGS = {
     "Romania": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="1" height="2" fill="#002B7F"/><rect width="1" height="2" x="1" fill="#FCD116"/><rect width="1" height="2" x="2" fill="#CE1126"/></svg>',
     "Hungary": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="0.667" fill="#CE1126"/><rect width="3" height="0.667" y="0.667" fill="#FFFFFF"/><rect width="3" height="0.667" y="1.333" fill="#436F4D"/></svg>',
-    "Slovakia": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="0.667" fill="#FFFFFF"/><rect width="3" height="0.667" y="0.667" fill="#0B4EA2"/><rect width="3" height="0.667" y="1.333" fill="#EE1C25"/></svg>',
+    "Slovakia": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="0.667" fill="#FFFFFF"/><rect width="3" height="0.667" y="0.667" fill="#0B4EA2"/><rect width="3" height="0.667" y="1.333" fill="#EE1C25"/><path d="M0.62 0.42 H1.38 V1.0 Q1.38 1.45 1.0 1.62 Q0.62 1.45 0.62 1.0 Z" fill="#EE1C25" stroke="#FFFFFF" stroke-width="0.06"/><path d="M0.97 0.6 H1.03 V1.18 H0.97 Z M0.84 0.74 H1.16 V0.8 H0.84 Z M0.79 0.92 H1.21 V0.98 H0.79 Z" fill="#FFFFFF"/><path d="M0.66 1.34 Q0.78 1.1 0.9 1.3 Q1.0 1.04 1.1 1.3 Q1.22 1.1 1.34 1.34 Q1.3 1.5 1.0 1.6 Q0.7 1.5 0.66 1.34 Z" fill="#0B4EA2"/></svg>',
     "Georgia": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="2" fill="#FFFFFF"/><rect width="3" height="0.4" y="0.8" fill="#FF0000"/><rect width="0.4" height="2" x="1.3" fill="#FF0000"/></svg>',
     "Morocco": '<svg viewBox="0 0 3 2" preserveAspectRatio="none"><rect width="3" height="2" fill="#C1272D"/><path d="M1.5 0.5 L1.794 1.405 L1.0245 0.8455 L1.9755 0.8455 L1.206 1.405 Z" fill="none" stroke="#006233" stroke-width="0.07"/></svg>',
 }
