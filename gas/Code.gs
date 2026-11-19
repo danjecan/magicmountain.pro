@@ -79,7 +79,7 @@ function doPost(e) {
 // ───────────── sign-up ─────────────
 
 // skipBotCheck is only ever true when testSignup() calls this from the editor; the web
-// endpoint (doPost) always runs the Turnstile check.
+// endpoint (doPost) always runs the Turnstile check and the duplicate guard.
 function handleSignup_(p, skipBotCheck) {
   try {
     // Silent drops: look like success to the sender, but are logged (View > Executions).
@@ -93,10 +93,13 @@ function handleSignup_(p, skipBotCheck) {
     if (!skipBotCheck && !turnstileOk_(p)) { console.log("rejected: Turnstile check failed or missing"); return reply_(false, "bot check failed"); }
 
     // The same person sending the same hike twice within ten minutes is a double click.
-    var cache = CacheService.getScriptCache();
-    var dupKey = "dup:" + p.email.toLowerCase() + ":" + p.hike_slug;
-    if (cache.get(dupKey)) { console.log("dropped: duplicate within ten minutes"); return reply_(true); }
-    cache.put(dupKey, "1", 600);
+    // (testSignup() skips this guard, so it can be run again straight away.)
+    if (!skipBotCheck) {
+      var cache = CacheService.getScriptCache();
+      var dupKey = "dup:" + p.email.toLowerCase() + ":" + p.hike_slug;
+      if (cache.get(dupKey)) { console.log("dropped: duplicate within ten minutes"); return reply_(true); }
+      cache.put(dupKey, "1", 600);
+    }
 
     var s = cleanSignup_(p);
     var health = s.health_flag === "Yes" ? "Needed" : "None";
