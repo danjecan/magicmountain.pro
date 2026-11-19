@@ -230,8 +230,8 @@
   document.querySelectorAll(".stepper").forEach(function (group) {
     var output = group.querySelector("output");
     var hidden = group.querySelector('input[type="hidden"]');
-    var min = output.id === "adults_count" ? 1 : 0;
-    var max = 10;
+    var min = (output.id === "adults_count" || output.id === "beds_count") ? 1 : 0;
+    var max = output.id === "beds_count" ? 20 : 10;
     function set(v) {
       v = Math.max(min, Math.min(max, v));
       output.textContent = String(v);
@@ -289,6 +289,23 @@
       var kids = parseInt((document.getElementById("children_count-hidden") || {}).value, 10) || 0;
       signupForm.querySelectorAll("[data-show-children]").forEach(function (g) { setGroup(g, kids > 0); });
       buildAgeFields(kids);
+      syncBeds();
+    };
+
+    // "Beds needed" starts at adults + children and follows the counters until the
+    // visitor changes it themselves (small children often share a parent's bed).
+    var bedsTouched = false;
+    var bedsStepper = document.getElementById("beds_count");
+    if (bedsStepper && bedsStepper.closest(".stepper")) {
+      bedsStepper.closest(".stepper").addEventListener("click", function () { bedsTouched = true; });
+    }
+    var syncBeds = function () {
+      if (bedsTouched || !bedsStepper) return;
+      var a = parseInt((document.getElementById("adults_count-hidden") || {}).value, 10) || 1;
+      var k = parseInt((document.getElementById("children_count-hidden") || {}).value, 10) || 0;
+      var v = Math.min(20, a + k);
+      bedsStepper.textContent = String(v);
+      document.getElementById("beds_count-hidden").value = String(v);
     };
 
     // One age box per child, kept in step with the Children stepper. Values already
@@ -444,6 +461,85 @@
         }, 250);
       } else {
         send();
+      }
+    });
+  }
+
+  // ---- Invoice details (/invoice/?c=TOKEN, from the personal link in our email) ----
+  // The token only identifies which Customer in Notion to save the details on. The reply
+  // from the Apps Script is read, so a refusal is shown, never treated as success.
+  var invoiceForm = document.getElementById("invoiceForm");
+  if (invoiceForm) {
+    var invOpened = Date.now();
+    var invToken = (new URLSearchParams(window.location.search).get("c") || "").trim();
+    var invErr = document.getElementById("invoiceErr");
+    var invErrBot = document.getElementById("invoiceErrBot");
+    var invErrLink = document.getElementById("invoiceErrLink");
+    var invBtn = invoiceForm.querySelector('button[type="submit"]');
+    var invLabel = invBtn.textContent;
+    if (!/^[0-9a-f-]{36}$/.test(invToken)) {
+      invErrLink.hidden = false;
+      invBtn.disabled = true;
+    } else {
+      document.getElementById("invoiceToken").value = invToken;
+    }
+
+    var invFail = function (box) {
+      box.hidden = false;
+      invBtn.disabled = false;
+      invBtn.textContent = invLabel;
+    };
+    var invDone = function () {
+      invoiceForm.hidden = true;
+      var done = document.getElementById("invoiceDone");
+      done.hidden = false;
+      done.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+    var invSend = function (data) {
+      fetch(window.MM_GAS_URL, { method: "POST", body: data })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.ok) { invDone(); return; }
+          if (window.console) console.warn("Invoice details not saved:", res && res.error);
+          if (res && res.error === "invalid link") invFail(invErrLink);
+          else if (res && res.error === "bot check failed") invFail(invErrBot);
+          else invFail(invErr);
+        })
+        .catch(function () { invFail(invErr); });
+    };
+
+    invoiceForm.addEventListener("submit", function (evt) {
+      evt.preventDefault();
+      invErr.hidden = true; invErrBot.hidden = true;
+      if (!/^[0-9a-f-]{36}$/.test(invToken)) { invErrLink.hidden = false; return; }
+      if (!invoiceForm.checkValidity()) { invoiceForm.reportValidity(); return; }
+
+      var hp = invoiceForm.querySelector('.honeypot-field input[type="text"]');
+      if (hp && hp.value.trim() !== "") { invDone(); return; } // pretend success to a bot
+
+      if (!window.MM_GAS_URL || window.MM_GAS_URL.indexOf("REPLACE") !== -1) { invErr.hidden = false; return; }
+      invBtn.disabled = true;
+      invBtn.textContent = invBtn.getAttribute("data-sending-label") || invLabel;
+      var data = new FormData(invoiceForm);
+      data.append("form_ms", String(Date.now() - invOpened));
+
+      var tokenField = invoiceForm.querySelector('[name="cf-turnstile-response"]');
+      if (invoiceForm.querySelector(".cf-turnstile") && !(tokenField && tokenField.value)) {
+        var waited = 0;
+        var poll = setInterval(function () {
+          tokenField = invoiceForm.querySelector('[name="cf-turnstile-response"]');
+          waited += 250;
+          if (tokenField && tokenField.value) {
+            clearInterval(poll);
+            data.set("cf-turnstile-response", tokenField.value);
+            invSend(data);
+          } else if (waited >= 10000) {
+            clearInterval(poll);
+            invFail(invErrBot);
+          }
+        }, 250);
+      } else {
+        invSend(data);
       }
     });
   }

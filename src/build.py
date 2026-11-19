@@ -61,8 +61,8 @@ def main():
     past = sorted([h for h in hikes if h.is_past], key=lambda h: h.date_start or "", reverse=True)
     print(f"Loaded {len(hikes)} published hikes ({len(upcoming)} upcoming, {len(past)} past).")
 
-    # /sign-up/received/ is a transactional page reached only after a real submission,
-    # so it's left out of the sitemap.
+    # /sign-up/received/ and /invoice/ are transactional pages (reached after a real
+    # submission, or through a personal emailed link), so they are left out of the sitemap.
     static_paths = ["/", "/hikes/", "/hikes/past/", "/about/", "/sign-up/", "/terms/"]
     hike_paths = [f"/hikes/{h.slug}/" for h in upcoming] + [f"/hikes/past/{h.slug}/" for h in past]
 
@@ -73,6 +73,7 @@ def main():
         write_page(dist_dir, lang, "/about/", pages.about(lang))
         write_page(dist_dir, lang, "/sign-up/", pages.signup(lang, upcoming))
         write_page(dist_dir, lang, "/sign-up/received/", pages.signup_received(lang))
+        write_page(dist_dir, lang, "/invoice/", pages.invoice_details(lang))
         write_page(dist_dir, lang, "/terms/", pages.policies(lang))
 
         # The sign-up-received page is one static page shared by every submission; it

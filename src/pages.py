@@ -18,8 +18,8 @@ def person_band(eyebrow, name, text, cta_label, cta_href, photo, photo_left):
     return f'<div class="band band-light"><div class="grid-2" style="gap:0;">{inner}</div></div>'
 
 
-def page_shell(lang, path, title, description, nav_active, body):
-    html = head(lang, path, title, description) + nav(lang, nav_active) + f'<main id="main">{body}</main>' + footer(lang) + TAIL
+def page_shell(lang, path, title, description, nav_active, body, noindex=False):
+    html = head(lang, path, title, description, noindex=noindex) + nav(lang, nav_active) + f'<main id="main">{body}</main>' + footer(lang) + TAIL
     return html
 
 
@@ -149,6 +149,7 @@ def signup(lang, upcoming_hikes):
                    f'<span class="select-field"><select class="input" name="hike_slug" id="hike_slug"{which_req}>{hike_opts_html}</select>{icon("chev")}</span></div>')
     fit_opts = list(zip(["<3h", "3-6h", "6-8h", "8h+", "none"], tl("s_fit_opts", lang)))
     kw_opts = list(zip(["<2h", "2-4h", "4h+", "unsure"], tl("s_kw_opts", lang)))
+    rooms_opts = list(zip(["One room for the whole family", "Separate rooms", "Not sure yet"], tl("s_rooms_opts", lang)))
     yn = tl("s_yesno", lang)
     yn_opts = [("No", yn[0]), ("Yes", yn[1])]
     choose = [("", t("s_choose", lang))]
@@ -189,18 +190,9 @@ def signup(lang, upcoming_hikes):
         <hr class="rule" style="margin:20px 0;">
         <div style="display:flex;flex-direction:column;gap:20px;">
           <span class="eyebrow">{t("s_3", lang)}</span>
-          <p class="muted small" style="margin:0;">{t("s_inv_h", lang)}</p>
-          <div class="grid-2" style="gap:20px;">
-            {field_text(t("s_bname", lang), "billing_name", "billing_name", hint=t("s_bname_h", lang), required=False)}
-            {field_text(t("s_country", lang), "country", "country", value="Magyarország" if lang == "hu" else "Hungary")}
-            {field_text(t("s_postcode", lang), "postcode", "postcode")}
-            {field_text(t("s_city", lang), "city", "city")}
-          </div>
-          {field_text(t("s_street", lang), "street", "street")}
-          <div class="grid-2" style="gap:20px;">
-            {field_text(t("s_company", lang), "company", "company", required=False)}
-            {field_text(t("s_tax", lang), "tax_number", "tax_number", required=False)}
-          </div>
+          {field_select(t("s_rooms", lang), "rooms_pref", "rooms_pref", choose + rooms_opts)}
+          {stepper(t("s_beds", lang), "beds_needed", "beds_count", 2, 1, 20)}
+          <p class="muted small" style="margin:-8px 0 0;">{t("s_beds_h", lang)}</p>
         </div>
         <hr class="rule" style="margin:20px 0;">
         <div style="display:flex;flex-direction:column;gap:20px;">
@@ -243,6 +235,64 @@ def signup(lang, upcoming_hikes):
 </div>
 '''
     return page_shell(lang, "/sign-up/", t("meta_signup_title", lang), t("s_lead", lang), "/sign-up/", body)
+
+
+# ───────────────────────── INVOICE DETAILS ─────────────────────────
+# Reached only through a personal link in an email (/invoice/?c=TOKEN). The token belongs
+# to one Customer in Notion; the Apps Script saves the details on that row. Not in the
+# sitemap, and noindex, because it is transactional.
+
+def invoice_details(lang):
+    turnstile = ""
+    if CONFIG.turnstile_site_key:
+        turnstile = (f'<div class="cf-turnstile" style="margin-top:16px" data-sitekey="{esc(CONFIG.turnstile_site_key)}" data-appearance="interaction-only"></div>'
+                     '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>')
+    body = f'''<div class="section-first" style="max-width:760px;">
+  <div style="display:flex;flex-direction:column;gap:32px;">
+    <div style="display:flex;flex-direction:column;gap:12px;"><span class="eyebrow">{t("inv_eyebrow", lang)}</span><h1 class="h1">{t("inv_title", lang)}</h1><p class="lead muted">{t("inv_lead", lang)}</p></div>
+    <div class="card form-card"><div class="card-body" style="gap:24px;padding:32px;">
+      <form id="invoiceForm" novalidate>
+        <input type="hidden" name="action" value="invoice">
+        <input type="hidden" name="token" id="invoiceToken" value="">
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          {field_text(t("inv_bname", lang), "billing_name", "billing_name", hint=t("inv_bname_h", lang), required=False)}
+          <div class="grid-2" style="gap:20px;">
+            {field_text(t("inv_country", lang), "country", "country", value="Magyarország" if lang == "hu" else "Hungary")}
+            {field_text(t("inv_postcode", lang), "postcode", "postcode")}
+          </div>
+          {field_text(t("inv_city", lang), "city", "city")}
+          {field_text(t("inv_street", lang), "street", "street")}
+          <div class="grid-2" style="gap:20px;">
+            {field_text(t("inv_company", lang), "company", "company", required=False)}
+            {field_text(t("inv_tax", lang), "tax_number", "tax_number", required=False)}
+          </div>
+        </div>
+        <div class="honeypot-field" aria-hidden="true">
+          <label for="{CONFIG.gas_honeypot_field}">Leave this field empty</label>
+          <input type="text" name="{CONFIG.gas_honeypot_field}" id="{CONFIG.gas_honeypot_field}" tabindex="-1" autocomplete="off">
+        </div>
+        {turnstile}
+        <div class="form-actions" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:20px;">
+          {btn(t("inv_send", lang), "primary", type_="submit")}
+        </div>
+        <div class="alert alert-error" id="invoiceErrBot" role="alert" hidden>
+          {t("s_err_bot", lang)} <a href="mailto:magicmountain.pro@gmail.com">{t("f_email", lang)}</a>.
+        </div>
+        <div class="alert alert-error" id="invoiceErrLink" role="alert" hidden>
+          {t("inv_bad_link", lang)} <a href="mailto:magicmountain.pro@gmail.com">{t("f_email", lang)}</a>.
+        </div>
+        <div class="alert alert-error" id="invoiceErr" role="alert" hidden>
+          {t("s_err", lang)} <a href="mailto:magicmountain.pro@gmail.com">{t("f_email", lang)}</a>.
+        </div>
+      </form>
+      <div id="invoiceDone" hidden style="display:flex;flex-direction:column;gap:12px;">
+        <h2 class="h2">{t("inv_done_t", lang)}</h2><p>{t("inv_done", lang)}</p>
+      </div>
+    </div></div>
+  </div>
+</div>
+'''
+    return page_shell(lang, "/invoice/", t("inv_meta", lang), t("inv_lead", lang), "/invoice/", body, noindex=True)
 
 
 # ───────────────────────── SIGN-UP RECEIVED ─────────────────────────

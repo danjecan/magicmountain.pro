@@ -55,7 +55,7 @@ def url_for(path, lang):
     return path
 
 
-def head(lang, path, title, description, canonical_path=None, og_image=None):
+def head(lang, path, title, description, canonical_path=None, og_image=None, noindex=False):
     canonical_path = canonical_path or path
     en_url = SITE_URL + url_for(canonical_path, "en")
     hu_url = SITE_URL + url_for(canonical_path, "hu")
@@ -68,6 +68,7 @@ def head(lang, path, title, description, canonical_path=None, og_image=None):
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(description)}">
+{'<meta name="robots" content="noindex, nofollow">' if noindex else ""}
 <link rel="canonical" href="{this_url}">
 <link rel="alternate" hreflang="en" href="{en_url}">
 <link rel="alternate" hreflang="hu" href="{hu_url}">

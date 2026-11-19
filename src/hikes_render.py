@@ -122,7 +122,7 @@ def fact_bar_for_hike(h, lang):
         if h.signup_deadline:
             items.append(("flag", t("h_by", lang), fmt_date_full(h.signup_deadline, lang)))
         if h.price_huf:
-            items.append(("list", t("h_price", lang), fmt_huf(h.price_huf) + " " + t("per_person", lang)))
+            items.append(("list", t("h_price_for", lang), fmt_huf(h.price_huf) + " " + t("per_adult", lang)))
     return fact_bar(items)
 
 
@@ -130,12 +130,9 @@ def price_box(h, lang, terms_href):
     c = _content(h, lang)
     included = c.included or [t("h_i1", lang), t("h_i2", lang), t("h_i3", lang), t("h_i4", lang)]
     checks = "".join(check_item(i) for i in included)
-    sep_html = _paras(c.paid_separately)
-    if not sep_html and h.accommodation_huf:
-        sep_html = f"<p><strong>{t('h_acc', lang)}</strong> ~{fmt_huf(h.accommodation_huf)} " + \
-                   ("/éj" if lang == "hu" else "per night") + f". {t('h_own', lang)}</p>"
-    elif not sep_html:
-        sep_html = f"<p>{t('h_own', lang)}</p>"
+    # Accommodation is never priced on the site: it depends on the rooms and beds each
+    # family needs, so the page says it is not included and that we send the amount.
+    sep_html = f"<p>{t('h_acc_note', lang)}</p>" + _paras(c.paid_separately) + f"<p>{t('h_own', lang)}</p>"
     price_line = fmt_huf(h.price_huf) if h.price_huf else "—"
     signup_href = url_for(f"/sign-up/?hike={h.slug}", lang)
     cta = t("join_wait", lang) if h.is_full else t("h_cta", lang)
@@ -143,8 +140,8 @@ def price_box(h, lang, terms_href):
     meter = places_meter_for(h, lang, large=True)
     dl = deadline_countdown(lang, h.signup_deadline) if h.signup_deadline else ""
     return f'''<div class="card"><div class="card-body" style="gap:16px;">
-  <span class="eyebrow">{t("h_price", lang)}</span>
-  <div style="display:flex;flex-direction:column;gap:4px;"><span class="h2" style="color:var(--orange);">{price_line}</span><span class="muted">{t("per_person", lang)}</span></div>
+  <span class="eyebrow">{t("h_price_for", lang)}</span>
+  <div style="display:flex;flex-direction:column;gap:4px;"><span class="h2" style="color:var(--orange);">{price_line}</span><span class="muted">{t("per_adult", lang)}</span><span class="small" style="font-weight:600;">{t("kids_free", lang)}</span></div>
   {meter}
   {dl}
   <hr class="rule">
@@ -187,7 +184,7 @@ def hike_detail_upcoming(h, lang, terms_href):
   {left_col}
   <div class="sidebar">{price_box(h, lang, terms_href)}</div>
 </div>
-<div class="book-bar" id="bookBar"><div style="display:flex;flex-direction:column;"><span class="h4" style="font-size:18px;">{fmt_huf(h.price_huf) if h.price_huf else ""}</span>{left_note or f'<span class="muted" style="font-size:13px;">{t("per_person", lang)}</span>'}</div>{btn(book_cta, "primary", "sm", url_for(f"/sign-up/?hike={h.slug}", lang))}</div>'''
+<div class="book-bar" id="bookBar"><div style="display:flex;flex-direction:column;"><span class="h4" style="font-size:18px;">{fmt_huf(h.price_huf) if h.price_huf else ""}</span>{left_note or f'<span class="muted" style="font-size:13px;">{t("per_adult", lang)}</span>'}</div>{btn(book_cta, "primary", "sm", url_for(f"/sign-up/?hike={h.slug}", lang))}</div>'''
     return body
 
 
