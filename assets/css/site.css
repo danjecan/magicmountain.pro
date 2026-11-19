@@ -65,6 +65,13 @@ img { max-width: 100%; }
   font-family: inherit;
 }
 textarea.input { height: 120px; padding: 12px 16px; resize: vertical; }
+/* Form-field dropdowns (field_select, the sign-up hike picker): without appearance:none the
+   browser draws its own native arrow flush against the border, which is what was reported as
+   "too close to the edge" -- the custom chevron below replaces it, so it can get the same
+   right-inset treatment as the filter-bar dropdowns. */
+.select-field { position: relative; display: block; }
+.select-field select.input { appearance: none; padding-right: 44px; cursor: pointer; }
+.select-field .ico { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); pointer-events: none; }
 .input::placeholder { color: rgba(0,31,97,0.45); }
 .input:invalid.touched { border-color: #C0362C; }
 .field-error { color: #C0362C; font-size: 14px; display: none; }

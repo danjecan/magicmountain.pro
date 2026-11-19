@@ -146,7 +146,7 @@ def signup(lang, upcoming_hikes):
         for h in upcoming_hikes) or f'<option value="">{esc(t("s_which_empty", lang))}</option>'
     which_req = " required" if upcoming_hikes else ""
     which_field = (f'<div class="field"><label for="hike_slug">{t("s_which", lang)}</label>'
-                   f'<select class="input" name="hike_slug" id="hike_slug"{which_req}>{hike_opts_html}</select></div>')
+                   f'<span class="select-field"><select class="input" name="hike_slug" id="hike_slug"{which_req}>{hike_opts_html}</select>{icon("chev")}</span></div>')
     fit_opts = list(zip(["<3h", "3-6h", "6-8h", "8h+", "none"], tl("s_fit_opts", lang)))
     kw_opts = list(zip(["<2h", "2-4h", "4h+", "unsure"], tl("s_kw_opts", lang)))
     yn = tl("s_yesno", lang)

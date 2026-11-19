@@ -151,7 +151,7 @@ def field_select(label, name, id_, options, hint="", required=True):
     h = f'<span class="muted small">{hint}</span>' if hint else ""
     req = " required" if required else ""
     return (f'<div class="field"><label for="{id_}">{label}</label>'
-            f'<select class="input" name="{name}" id="{id_}"{req}>{opts}</select>{h}</div>')
+            f'<span class="select-field"><select class="input" name="{name}" id="{id_}"{req}>{opts}</select>{icon("chev")}</span>{h}</div>')
 
 
 def field_textarea(label, name, id_, placeholder="", hint=""):
