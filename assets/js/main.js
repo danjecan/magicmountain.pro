@@ -307,6 +307,8 @@
       evt.preventDefault();
       var errBox = document.getElementById("signupErr");
       errBox.hidden = true;
+      var errBotBox = document.getElementById("signupErrBot");
+      if (errBotBox) errBotBox.hidden = true;
 
       if (!signupForm.checkValidity()) {
         signupForm.reportValidity();
@@ -345,19 +347,48 @@
       data.append("page_url", window.location.href);
       data.append("form_ms", String(Date.now() - formOpenedAt));
 
-      fetch(window.MM_GAS_URL, {
-        method: "POST",
-        mode: "no-cors", // Apps Script web apps don't return CORS headers; we can't
-        body: data,      // read the response, so treat a resolved fetch as success.
-      })
-        .then(function () {
-          goToReceived(hikeSlug, adults, children, email);
-        })
-        .catch(function () {
-          errBox.hidden = false;
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalLabel;
-        });
+      var errBot = document.getElementById("signupErrBot");
+      var fail = function (bot) {
+        (bot ? errBot : errBox).hidden = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalLabel;
+      };
+      var send = function () {
+        // Read the script's reply (Apps Script allows this) so a lost sign-up is never
+        // shown as a success. Honeypot and too-fast drops still answer ok:true on purpose.
+        fetch(window.MM_GAS_URL, { method: "POST", body: data })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (res && res.ok) {
+              goToReceived(hikeSlug, adults, children, email);
+            } else {
+              fail(res && res.error === "bot check failed");
+            }
+          })
+          .catch(function () { fail(false); });
+      };
+
+      // Cloudflare Turnstile runs invisibly and adds its token to the form when done.
+      // Wait up to 10 s for it; if it never arrives, say so rather than send a sign-up
+      // the server will refuse.
+      var tokenField = signupForm.querySelector('[name="cf-turnstile-response"]');
+      if (signupForm.querySelector(".cf-turnstile") && !(tokenField && tokenField.value)) {
+        var waited = 0;
+        var poll = setInterval(function () {
+          tokenField = signupForm.querySelector('[name="cf-turnstile-response"]');
+          waited += 250;
+          if (tokenField && tokenField.value) {
+            clearInterval(poll);
+            data.set("cf-turnstile-response", tokenField.value);
+            send();
+          } else if (waited >= 10000) {
+            clearInterval(poll);
+            fail(true);
+          }
+        }, 250);
+      } else {
+        send();
+      }
     });
   }
 

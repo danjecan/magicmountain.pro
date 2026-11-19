@@ -222,6 +222,9 @@ def signup(lang, upcoming_hikes):
           {btn(t("s_send", lang), "primary", type_="submit", glint="big")}
           <span class="muted small">{t("s_nopay", lang)}</span>
         </div>
+        <div class="alert alert-error" id="signupErrBot" role="alert" hidden>
+          {t("s_err_bot", lang)} <a href="mailto:magicmountain.pro@gmail.com">{t("f_email", lang)}</a>.
+        </div>
         <div class="alert alert-error" id="signupErr" role="alert" hidden>
           {t("s_err", lang)} <a href="mailto:magicmountain.pro@gmail.com">{t("f_email", lang)}</a>.
         </div>

@@ -232,6 +232,7 @@ T = {
                 "Valami nem stimmel? Válaszolj az e-mailre, vagy írj nekünk WhatsAppon:"),
     "d_more": ("See other hikes", "További túrák"), "d_home": ("Back to home", "Vissza a főoldalra"),
     "s_err": ("Something went wrong sending your sign-up. Please try again, or write to", "Valami elromlott a jelentkezés küldése közben. Kérjük, próbáld újra, vagy írj:"),
+    "s_err_bot": ("The security check didn't finish, so we couldn't send your sign-up. Please wait a few seconds and try again, or write to", "A biztonsági ellenőrzés nem fejeződött be, ezért nem tudtuk elküldeni a jelentkezést. Kérjük, várj pár másodpercet és próbáld újra, vagy írj:"),
     "s_required": ("Please fill in this field.", "Kérjük, töltsd ki ezt a mezőt."),
     "s_email_invalid": ("Please enter a valid email address.", "Kérjük, adj meg érvényes e-mail-címet."),
     "s_hike_prefix": ("Signing up for:", "Jelentkezés erre:"),

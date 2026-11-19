@@ -66,7 +66,8 @@ function handle_(p, skipBotCheck) {
     var problem = validate_(p);
     if (problem) { console.log("rejected: " + problem); return reply_(false, problem); }
 
-    if (!skipBotCheck && !turnstileOk_(p)) { console.log("dropped: Turnstile check failed or missing"); return reply_(true); }
+    // Reported (not silent): a real visitor whose security check failed should be told.
+    if (!skipBotCheck && !turnstileOk_(p)) { console.log("rejected: Turnstile check failed or missing"); return reply_(false, "bot check failed"); }
 
     // The same person sending the same hike twice within ten minutes is a double
     // click or a retry: record it once.
