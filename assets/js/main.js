@@ -294,6 +294,23 @@
     // One age box per child, kept in step with the Children stepper. Values already
     // typed survive a change of count. They are joined into the single hidden
     // child_ages field at submit time ("7, 9, 12"), which is what the backend expects.
+    // The age box refuses anything that isn't a whole number from 0 to 17: a number over
+    // 17 is put back to what was there before and the reason is shown under the box.
+    var guardAge = function (input, note) {
+      var last = "";
+      input.addEventListener("input", function () {
+        var v = input.value;
+        if (v === "" || (/^\d{1,2}$/.test(v) && Number(v) <= 17)) {
+          last = v;
+          note.classList.remove("show");
+        } else {
+          input.value = last;
+          note.classList.add("show");
+        }
+      });
+      input.addEventListener("blur", function () { note.classList.remove("show"); });
+    };
+
     var buildAgeFields = function (kids) {
       var box = document.getElementById("childAgeFields");
       if (!box) return;
@@ -312,7 +329,12 @@
         input.min = "0"; input.max = "17"; input.step = "1";
         input.setAttribute("inputmode", "numeric");
         input.required = true;
-        wrap.appendChild(label); wrap.appendChild(input);
+        var note = document.createElement("span");
+        note.className = "field-error";
+        note.setAttribute("role", "alert");
+        note.textContent = box.getAttribute("data-limit-msg") || "";
+        guardAge(input, note);
+        wrap.appendChild(label); wrap.appendChild(input); wrap.appendChild(note);
         box.appendChild(wrap);
       }
       while (box.children.length > kids) box.removeChild(box.lastChild);
