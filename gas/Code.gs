@@ -52,23 +52,27 @@ var FITNESS = { "<3h": "Under 3 hours", "3-6h": "3-6 hours", "6-8h": "6-8 hours"
 var KIDS_WALK = { "<2h": "Up to 2 hours", "2-4h": "2-4 hours", "4h+": "4+ hours", "unsure": "Not sure" };
 
 function doPost(e) {
-  try {
-    var p = (e && e.parameter) || {};
+  return handle_((e && e.parameter) || {}, false);
+}
 
-    // Silent drops: look like success to the sender.
-    if (p[HONEYPOT_FIELD]) return reply_(true);
-    if (!(Number(p.form_ms) >= MIN_FILL_MS)) return reply_(true);
+// skipBotCheck is only ever true when testSignup() calls this from the editor; the web
+// endpoint (doPost) always runs the Turnstile check.
+function handle_(p, skipBotCheck) {
+  try {
+    // Silent drops: look like success to the sender, but are logged here (View > Executions).
+    if (p[HONEYPOT_FIELD]) { console.log("dropped: honeypot filled"); return reply_(true); }
+    if (!(Number(p.form_ms) >= MIN_FILL_MS)) { console.log("dropped: filled in too fast (" + p.form_ms + " ms)"); return reply_(true); }
 
     var problem = validate_(p);
-    if (problem) return reply_(false, problem);
+    if (problem) { console.log("rejected: " + problem); return reply_(false, problem); }
 
-    if (!turnstileOk_(p)) return reply_(true);
+    if (!skipBotCheck && !turnstileOk_(p)) { console.log("dropped: Turnstile check failed or missing"); return reply_(true); }
 
     // The same person sending the same hike twice within ten minutes is a double
     // click or a retry: record it once.
     var cache = CacheService.getScriptCache();
     var dupKey = "dup:" + p.email.toLowerCase() + ":" + p.hike_slug;
-    if (cache.get(dupKey)) return reply_(true);
+    if (cache.get(dupKey)) { console.log("dropped: duplicate within ten minutes"); return reply_(true); }
     cache.put(dupKey, "1", 600);
 
     var s = clean_(p);
@@ -76,7 +80,7 @@ function doPost(e) {
 
     // Is the hike real? If Notion can't be reached we accept the sign-up anyway.
     var hike = findHike_(s.hike_slug);
-    if (hike.status === "missing") return reply_(false, "unknown hike");
+    if (hike.status === "missing") { console.log("rejected: unknown hike " + s.hike_slug); return reply_(false, "unknown hike"); }
 
     var notion = "skipped";
     var row = [
@@ -260,12 +264,12 @@ function reply_(ok, error) {
 // Run this once from the Apps Script editor (Run > testSignup) to check the whole chain
 // before pointing the site at the deployment. It writes a clearly labelled TEST row.
 function testSignup() {
-  var res = doPost({ parameter: {
+  var res = handle_({
     form_ms: "60000", page_lang: "en", hike_slug: "aggtelek-2027-03", adults: "2", children: "1",
     child_ages: "7", name: "TEST Please Delete", email: "test@example.com", phone: "+36 30 000 0000",
     from_where: "Budapest", country: "Hungary", postcode: "1011", city: "Budapest", street: "Test u. 1",
     kids_walk: "2-4h", carry_child: "No", health_flag: "No", notes: "test", agree_terms: "on",
     agree_privacy: "on", page_url: "https://magicmountain.pro/sign-up/",
-  } });
-  console.log(res.getContent());
+  }, true);
+  console.log("Result: " + res.getContent());
 }
