@@ -144,7 +144,8 @@ function validate_(p) {
   if (!p.agree_terms || !p.agree_privacy) return "terms not accepted";
   var keys = Object.keys(p);
   for (var k = 0; k < keys.length; k++) {
-    var max = keys[k] === "notes" ? 1500 : 300;
+    // The Turnstile token is long (well over 1,000 characters), so it gets its own limit.
+    var max = keys[k] === "notes" ? 1500 : keys[k] === "cf-turnstile-response" ? 4096 : 300;
     if (String(p[keys[k]]).length > max) return "field too long: " + keys[k];
   }
   return "";

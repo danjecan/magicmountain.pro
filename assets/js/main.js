@@ -362,6 +362,7 @@
             if (res && res.ok) {
               goToReceived(hikeSlug, adults, children, email);
             } else {
+              if (window.console) console.warn("Sign-up not recorded:", res && res.error);
               fail(res && res.error === "bot check failed");
             }
           })

@@ -154,7 +154,7 @@ def signup(lang, upcoming_hikes):
     choose = [("", t("s_choose", lang))]
     turnstile = ""
     if CONFIG.turnstile_site_key:
-        turnstile = (f'<div class="cf-turnstile" data-sitekey="{esc(CONFIG.turnstile_site_key)}" data-appearance="interaction-only"></div>'
+        turnstile = (f'<div class="cf-turnstile" style="margin-top:16px" data-sitekey="{esc(CONFIG.turnstile_site_key)}" data-appearance="interaction-only"></div>'
                      '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>')
     next_steps_inner = (f'<div style="display:flex;flex-direction:column;gap:24px;"><span class="eyebrow">{t("s_next", lang)}</span>'
                          f'{step(1, t("s_n1t", lang), t("s_n1", lang))}{step(2, t("s_n2t", lang), t("s_n2", lang))}'
