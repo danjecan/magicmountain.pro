@@ -34,6 +34,7 @@ jobs:
           NOTION_DATABASE_ID: ${{ vars.NOTION_DATABASE_ID }}
           GAS_SIGNUP_URL: ${{ vars.GAS_SIGNUP_URL }}
           GAS_HONEYPOT_FIELD: ${{ vars.GAS_HONEYPOT_FIELD }}
+          TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
           MAILCHIMP_ACTION_URL: ${{ vars.MAILCHIMP_ACTION_URL }}
           MAILCHIMP_U: ${{ vars.MAILCHIMP_U }}
           MAILCHIMP_LIST_ID: ${{ vars.MAILCHIMP_LIST_ID }}
