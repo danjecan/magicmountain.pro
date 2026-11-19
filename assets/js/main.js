@@ -288,6 +288,34 @@
       });
       var kids = parseInt((document.getElementById("children_count-hidden") || {}).value, 10) || 0;
       signupForm.querySelectorAll("[data-show-children]").forEach(function (g) { setGroup(g, kids > 0); });
+      buildAgeFields(kids);
+    };
+
+    // One age box per child, kept in step with the Children stepper. Values already
+    // typed survive a change of count. They are joined into the single hidden
+    // child_ages field at submit time ("7, 9, 12"), which is what the backend expects.
+    var buildAgeFields = function (kids) {
+      var box = document.getElementById("childAgeFields");
+      if (!box) return;
+      var have = box.querySelectorAll("input").length;
+      var tpl = box.getAttribute("data-label") || "Age of child {n}";
+      for (var i = have + 1; i <= kids; i++) {
+        var wrap = document.createElement("div");
+        wrap.className = "field";
+        var label = document.createElement("label");
+        label.setAttribute("for", "child_age_" + i);
+        label.textContent = tpl.replace("{n}", i);
+        var input = document.createElement("input");
+        input.className = "input";
+        input.type = "number";
+        input.id = "child_age_" + i;
+        input.min = "0"; input.max = "17"; input.step = "1";
+        input.setAttribute("inputmode", "numeric");
+        input.required = true;
+        wrap.appendChild(label); wrap.appendChild(input);
+        box.appendChild(wrap);
+      }
+      while (box.children.length > kids) box.removeChild(box.lastChild);
     };
     var hikeSel = document.getElementById("hike_slug");
     if (hikeSel) hikeSel.addEventListener("change", syncConditional);
@@ -315,6 +343,11 @@
         return;
       }
 
+      var ageInputs = signupForm.querySelectorAll("#childAgeFields input");
+      var agesField = document.getElementById("child_ages");
+      if (agesField) {
+        agesField.value = Array.prototype.map.call(ageInputs, function (el) { return el.value; }).join(", ");
+      }
       var data = new FormData(signupForm);
       var hikeSlug = data.get("hike_slug") || "";
       var adults = data.get("adults") || "";

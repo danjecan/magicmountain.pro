@@ -139,7 +139,14 @@ function validate_(p) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(p.email)) return "bad email";
   var adults = Number(p.adults), children = Number(p.children || 0);
   if (!(adults >= 1 && adults <= 20) || !(children >= 0 && children <= 20)) return "bad group size";
-  if (children > 0 && !(p.child_ages && String(p.child_ages).trim())) return "missing child_ages";
+  if (children > 0) {
+    // One age per child, e.g. "7, 9". Anyone 18 or older must be entered as an adult.
+    var ages = String(p.child_ages || "").split(",").map(function (a) { return a.trim(); });
+    if (ages.length !== children) return "child_ages must list one age per child";
+    for (var a = 0; a < ages.length; a++) {
+      if (!/^\d{1,2}$/.test(ages[a]) || Number(ages[a]) > 17) return "child age must be 0 to 17";
+    }
+  }
   if (p.health_flag !== "Yes" && p.health_flag !== "No") return "missing health answer";
   if (!p.agree_terms || !p.agree_privacy) return "terms not accepted";
   var keys = Object.keys(p);

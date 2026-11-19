@@ -169,7 +169,12 @@ def signup(lang, upcoming_hikes):
           <span class="eyebrow">{t("s_1", lang)}</span>
           {which_field}
           <div class="grid-2" style="gap:20px;">{stepper(t("s_adults", lang), "adults", "adults_count", 2)}{stepper(t("s_children", lang), "children", "children_count", 0)}</div>
-          <div data-show-children hidden>{field_text(t("s_childages", lang), "child_ages", "child_ages", hint=t("s_childages_h", lang))}</div>
+          <p class="muted small" style="margin:-8px 0 0;">{t("s_group_h", lang)}</p>
+          <div data-show-children hidden style="display:flex;flex-direction:column;gap:12px;">
+            <div id="childAgeFields" class="grid-2" style="gap:20px;" data-label="{esc(t("s_childages", lang))}"></div>
+            <input type="hidden" name="child_ages" id="child_ages">
+            <span class="muted small">{t("s_childages_h", lang)}</span>
+          </div>
         </div>
         <hr class="rule" style="margin:20px 0;">
         <div style="display:flex;flex-direction:column;gap:20px;">
